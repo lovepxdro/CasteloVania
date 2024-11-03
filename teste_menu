@@ -4,15 +4,13 @@
 
 typedef enum {
     MENU = 0,
-    INSTRUCOES,
-    RANKING,
     JOGO,
     SAIR
 } GameScreen;
 
 int main(void) {
-    const int screenWidth = 1280;
-    const int screenHeight = 720;
+    const int screenWidth = 800;
+    const int screenHeight = 420;
     InitWindow(screenWidth, screenHeight, "CasteloVania");
 
     int selectedOption = 0;
@@ -27,21 +25,13 @@ int main(void) {
             if (IsKeyPressed(KEY_DOWN)) selectedOption = (selectedOption + 1) % MAX_OPTIONS;
             if (IsKeyPressed(KEY_UP)) selectedOption = (selectedOption - 1 + MAX_OPTIONS) % MAX_OPTIONS;
 
-            // Verifica se a opção foi selecionada
+            // Verifica se a opção foi selecionada com Enter apenas para Iniciar e Sair
             if (IsKeyPressed(KEY_ENTER)) {
-                switch (selectedOption) {
-                    case 0: // Iniciar
-                        currentScreen = JOGO;
-                        break;
-                    case 1: // Instruções
-                        currentScreen = INSTRUCOES;
-                        break;
-                    case 2: // Ranking
-                        currentScreen = RANKING;
-                        break;
-                    case 3: // Sair
-                        CloseWindow();
-                        return 0;
+                if (selectedOption == 0) { // Iniciar
+                    currentScreen = JOGO;
+                } else if (selectedOption == 3) { // Sair
+                    CloseWindow();
+                    return 0;
                 }
             }
 
@@ -62,20 +52,21 @@ int main(void) {
                     DrawText(menuOptions[i], screenWidth / 4 - MeasureText(menuOptions[i], 20) / 2, 150 + i * 40, 20, color);
                 }
 
-                // Exibe informações na área direita para as opções selecionadas
+                // Exibe informações na área direita automaticamente para "Instruções" e "Ranking"
                 if (selectedOption == 1) {  // Instruções
                     DrawText("Instruções", screenWidth * 3 / 4 - MeasureText("Instruções", 30) / 2, 50, 30, DARKBLUE);
-                    DrawText("Use W-A-D para movimentar o personagem.", screenWidth / 2 + 20, 150, 20, DARKGRAY);
-                    DrawText("Use as setas para disparar.", screenWidth / 2 + 20, 190, 20, DARKGRAY);
+                    DrawText("Use W-A-D para movimentar o personagem.", screenWidth / 2 + 20, 150, 17, DARKGRAY);
+                    DrawText("Use as setas para disparar.", screenWidth / 2 + 20, 190, 17, DARKGRAY);
                 } else if (selectedOption == 2) {  // Ranking
                     DrawText("Ranking", screenWidth * 3 / 4 - MeasureText("Ranking", 30) / 2, 50, 30, DARKBLUE);
-                    DrawText("Veja as pontuações mais altas aqui!", screenWidth / 2 + 20, 150, 20, DARKGRAY);
-                    DrawText("Ainda não há pontuações disponíveis.", screenWidth / 2 + 20, 190, 20, DARKGRAY);
+                    DrawText("Veja as pontuações mais altas aqui!", screenWidth / 2 + 20, 150, 17, DARKGRAY);
+                    DrawText("Ainda não há pontuações disponíveis.", screenWidth / 2 + 20, 190, 17, DARKGRAY);
                 }
 
             EndDrawing();
 
-        } else if (currentScreen == INSTRUCOES || currentScreen == RANKING) {
+        } else if (currentScreen == JOGO) {
+            // Aqui iria a lógica do jogo em si
             // Volta ao menu principal ao pressionar ESC
             if (IsKeyPressed(KEY_ESCAPE)) {
                 currentScreen = MENU;
@@ -83,16 +74,8 @@ int main(void) {
             
             BeginDrawing();
                 ClearBackground(RAYWHITE);
-                if (currentScreen == INSTRUCOES) {
-                    DrawText("Instruções", screenWidth / 2 - MeasureText("Instruções", 40) / 2, 100, 40, DARKBLUE);
-                    DrawText("Use W-A-D para movimentar o personagem.", 120, 200, 20, DARKGRAY);
-                    DrawText("Use as setas para disparar.", 120, 240, 20, DARKGRAY);
-                } else if (currentScreen == RANKING) {
-                    DrawText("Ranking", screenWidth / 2 - MeasureText("Ranking", 40) / 2, 100, 40, DARKBLUE);
-                    DrawText("Pontuações mais altas:", 120, 200, 20, DARKGRAY);
-                    DrawText("Ainda não há pontuações disponíveis.", 120, 240, 20, DARKGRAY);
-                    DrawText("Pressione ESC para voltar ao menu principal.", 120, 280, 20, DARKGRAY);
-                }
+                DrawText("Jogo em andamento...", screenWidth / 2 - MeasureText("Jogo em andamento...", 40) / 2, screenHeight / 2 - 20, 40, DARKBLUE);
+                DrawText("Pressione ESC para voltar ao menu principal.", screenWidth / 2 - MeasureText("Pressione ESC para voltar ao menu principal.", 20) / 2, screenHeight / 2 + 30, 20, DARKGRAY);
             EndDrawing();
         }
     }
