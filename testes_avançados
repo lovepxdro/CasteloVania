@@ -1,0 +1,190 @@
+#include "raylib.h"
+#include <stdlib.h>
+#include <math.h>
+
+#define GRAVITY 500.0f
+#define JUMP_FORCE -300.0f
+#define PLAYER_SPEED 200.0f
+#define BULLET_SPEED 500.0f
+#define ENEMY_SPEED 100.0f
+#define MAX_BULLETS 10
+
+typedef struct Bullet {
+    Rectangle rect;
+    bool active;
+} Bullet;
+
+typedef struct Sala {
+    int id;
+    struct Sala* esquerda;
+    struct Sala* direita;
+    Rectangle floor;
+    Rectangle enemy;
+    bool enemyAlive;
+    int enemyHits;
+} Sala;
+
+Sala* criaSala(int id) {
+    Sala* sala = (Sala*)malloc(sizeof(Sala));
+    sala->id = id;
+    sala->esquerda = NULL;
+    sala->direita = NULL;
+    sala->floor = (Rectangle){0, 450 - 50, 800, 50};
+    sala->enemy = (Rectangle){600, 450 - 100, 50, 50};
+    sala->enemyAlive = true;
+    sala->enemyHits = 0;
+    return sala;
+}
+
+void liberaSalas(Sala* sala) {
+    while (sala) {
+        Sala* prox = sala->direita;
+        free(sala);
+        sala = prox;
+    }
+}
+
+int main(void) {
+    const int screenWidth = 800;
+    const int screenHeight = 450;
+    InitWindow(screenWidth, screenHeight, "2D Game with Rooms");
+
+    // Cria e conecta salas
+    Sala* sala1 = criaSala(1);
+    Sala* sala2 = criaSala(2);
+    Sala* sala3 = criaSala(3);
+    sala1->direita = sala2;
+    sala2->esquerda = sala1;
+    sala2->direita = sala3;
+    sala3->esquerda = sala2;
+
+    Sala* salaAtual = sala1;
+
+    Rectangle player = {100, screenHeight - 100, 50, 50};
+    Vector2 playerSpeed = {0, 0};
+    bool isGrounded = false;
+
+    Bullet bullets[MAX_BULLETS] = {0};
+    for (int i = 0; i < MAX_BULLETS; i++) bullets[i].active = false;
+
+    SetTargetFPS(60);
+
+    while (!WindowShouldClose()) {
+        // Movimentação do jogador
+        if (IsKeyDown(KEY_D)) player.x += PLAYER_SPEED * GetFrameTime();
+        if (IsKeyDown(KEY_A)) player.x -= PLAYER_SPEED * GetFrameTime();
+
+        // Controle do pulo
+        if (IsKeyPressed(KEY_W) && isGrounded) {
+            playerSpeed.y = JUMP_FORCE;
+            isGrounded = false;
+        }
+
+        // Aplicação da gravidade
+        playerSpeed.y += GRAVITY * GetFrameTime();
+        player.y += playerSpeed.y * GetFrameTime();
+
+        // Colisão com o chão
+        if (CheckCollisionRecs(player, salaAtual->floor)) {
+            player.y = salaAtual->floor.y - player.height;
+            playerSpeed.y = 0;
+            isGrounded = true;
+        }
+
+        // Verifica transição de salas
+        if (player.x + player.width > screenWidth) {  // Sai pela direita
+            if (salaAtual->direita) {
+                salaAtual = salaAtual->direita;
+                player.x = 0;
+            } else {
+                player.x = screenWidth - player.width;
+            }
+        } else if (player.x < 0) {  // Sai pela esquerda
+            if (salaAtual->esquerda) {
+                salaAtual = salaAtual->esquerda;
+                player.x = screenWidth - player.width;
+            } else {
+                player.x = 0;
+            }
+        }
+
+        // Movimento do inimigo, se ele estiver vivo
+        if (salaAtual->enemyAlive) {
+            Vector2 direction = {player.x - salaAtual->enemy.x, player.y - salaAtual->enemy.y};
+            float magnitude = sqrt(direction.x * direction.x + direction.y * direction.y);
+            if (magnitude > 0) {
+                direction.x /= magnitude;
+                salaAtual->enemy.x += direction.x * ENEMY_SPEED * GetFrameTime();
+            }
+        }
+
+        // Criação de projétil ao pressionar 'F'
+        if (IsKeyPressed(KEY_F)) {
+            for (int i = 0; i < MAX_BULLETS; i++) {
+                if (!bullets[i].active) {
+                    bullets[i].rect.x = player.x + player.width;
+                    bullets[i].rect.y = player.y + player.height / 2;
+                    bullets[i].rect.width = 10;
+                    bullets[i].rect.height = 5;
+                    bullets[i].active = true;
+                    break;
+                }
+            }
+        }
+
+        // Atualização dos projéteis
+        for (int i = 0; i < MAX_BULLETS; i++) {
+            if (bullets[i].active) {
+                bullets[i].rect.x += BULLET_SPEED * GetFrameTime();
+                if (bullets[i].rect.x > screenWidth) bullets[i].active = false;
+
+                // Colisão entre projétil e inimigo
+                if (salaAtual->enemyAlive && CheckCollisionRecs(bullets[i].rect, salaAtual->enemy)) {
+                    bullets[i].active = false;
+                    salaAtual->enemyHits++;
+                    if (salaAtual->enemyHits >= 2) {
+                        salaAtual->enemyAlive = false;
+                    }
+                }
+            }
+        }
+
+        // Verifica colisão entre jogador e inimigo
+        if (salaAtual->enemyAlive && CheckCollisionRecs(player, salaAtual->enemy)) {
+            DrawText("GAME OVER", screenWidth / 2 - 50, screenHeight / 2, 30, RED);
+            break;
+        }
+
+        // Renderização
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+
+        // Desenha o chão e o jogador
+        DrawRectangleRec(salaAtual->floor, DARKGRAY);
+        DrawRectangleRec(player, BLUE);
+
+        // Desenha os projéteis
+        for (int i = 0; i < MAX_BULLETS; i++) {
+            if (bullets[i].active) {
+                DrawRectangleRec(bullets[i].rect, RED);
+            }
+        }
+
+        // Desenha o inimigo
+        if (salaAtual->enemyAlive) {
+            DrawRectangleRec(salaAtual->enemy, MAROON);
+        }
+
+        // Informações na tela
+        DrawText("Use A - D para mover, W para pular, e F para disparar", 10, 10, 20, DARKGRAY);
+        DrawText(isGrounded ? "No Chão" : "No Ar", 10, 40, 20, RED);
+        DrawText(TextFormat("Sala %d", salaAtual->id), 10, 70, 20, GREEN);
+
+        EndDrawing();
+    }
+
+    liberaSalas(sala1);
+    CloseWindow();
+
+    return 0;
+}
