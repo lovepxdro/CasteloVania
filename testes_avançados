@@ -37,10 +37,10 @@ Sala* criaSala(int id) {
     sala->floor = (Rectangle){0, 450 - 50, 800, 50};
     sala->ceiling = (Rectangle){0, 0, 800, 50}; // Teto
 
-    if (id == 3) {  // Última sala (boss)
+    if (id == 5) {  // Última sala (boss)
         sala->enemy = (Rectangle){0, sala->ceiling.y + sala->ceiling.height, 50, 50}; // Posição inicial perto do teto
         sala->enemyLife = 100;
-    } else {
+    } else if(id>1) {
         sala->enemy = (Rectangle){600, 450 - 100, 50, 50}; // Inimigo no chão
         sala->enemyLife = 10;
     }
@@ -70,10 +70,16 @@ int main(void) {
     Sala* sala1 = criaSala(1);
     Sala* sala2 = criaSala(2);
     Sala* sala3 = criaSala(3);
+    Sala* sala4 = criaSala(4);
+    Sala* sala5 = criaSala(5);
     sala1->direita = sala2;
     sala2->esquerda = sala1;
     sala2->direita = sala3;
     sala3->esquerda = sala2;
+    sala3->direita = sala4;
+    sala4->esquerda = sala3;
+    sala4->direita = sala5;
+    sala5->esquerda = sala4;
 
     Sala* salaAtual = sala1;
 
@@ -137,7 +143,7 @@ int main(void) {
 
         // Movimento do inimigo
         if (salaAtual->enemyAlive) {
-            if (salaAtual->id == 3) { // Última sala: movimento horizontal contínuo no teto
+            if (salaAtual->id == 5) { // Última sala: movimento horizontal contínuo no teto
                 if (movingRight) {
                     salaAtual->enemy.x += ENEMY_SPEED * GetFrameTime();
                     if (salaAtual->enemy.x + salaAtual->enemy.width >= screenWidth) {
