@@ -323,7 +323,7 @@ int main(void) {
             currentScreen = Menu();
             if (currentScreen == SAIR) break;
         }
-        
+        CloseWindow();
         GameLoop();
     }
 
