@@ -10,7 +10,7 @@
 #define BULLET_SPEED 500.0f
 #define ENEMY_SPEED 100.0f
 #define MAX_BULLETS 10
-#define MAX_ENEMY_BULLETS 5
+#define MAX_ENEMY_BULLETS 100
 
 typedef enum {
     MENU = 0,
@@ -204,7 +204,7 @@ void GameLoop(void) {
                     if (salaAtual->enemy.x <= 0) movingRight = true;
                 }
 
-                if (rand() % 50 == 0) {
+                if (rand() % 20 == 0) {
                     for (int i = 0; i < MAX_ENEMY_BULLETS; i++) {
                         if (!salaAtual->enemyBullets[i].active) {
                             salaAtual->enemyBullets[i].rect = (Rectangle){salaAtual->enemy.x + salaAtual->enemy.width / 2, salaAtual->enemy.y + salaAtual->enemy.height, 5, 10};
