@@ -154,7 +154,7 @@ void GameLoop(void) {
     srand(time(NULL));
     SetTargetFPS(60);
     bool movingRight = true;
-    double startTime = GetTime();
+    double countdownTime = 180.0;
 
     while (!WindowShouldClose()) {
         if (playerLife <= 0) {
@@ -162,7 +162,16 @@ void GameLoop(void) {
             break;
         }
         
-         double elapsedTime = GetTime() - startTime;
+         countdownTime -= GetFrameTime();
+         
+         if (countdownTime <= 0) {
+            countdownTime = 0;
+            BeginDrawing();
+            ClearBackground(RAYWHITE);
+            DrawText("TEMPO ESGOTADO", screenWidth / 2 - 100, screenHeight / 2, 30, RED);
+            EndDrawing();
+            break;
+        }
 
         if (IsKeyDown(KEY_D)) player.x += PLAYER_SPEED * GetFrameTime();
         if (IsKeyDown(KEY_A)) player.x -= PLAYER_SPEED * GetFrameTime();
@@ -292,8 +301,8 @@ void GameLoop(void) {
         for (int i = 0; i < MAX_BULLETS; i++) if (bullets[i].active) DrawRectangleRec(bullets[i].rect, BLACK);
         for (int i = 0; i < MAX_ENEMY_BULLETS; i++) if (salaAtual->enemyBullets[i].active) DrawRectangleRec(salaAtual->enemyBullets[i].rect, PURPLE);
         
-        int minutes = (int)(elapsedTime / 60);
-        int seconds = (int)(elapsedTime) % 60;
+        int minutes = (int)(countdownTime / 60);
+        int seconds = (int)(countdownTime) % 60;
         DrawText(TextFormat("Tempo: %02d:%02d", minutes, seconds), screenWidth - 150, 10, 20, DARKGRAY);
 
         DrawText(TextFormat("Vidas: %d", playerLife), 10, 10, 20, RED);
