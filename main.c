@@ -154,12 +154,15 @@ void GameLoop(void) {
     srand(time(NULL));
     SetTargetFPS(60);
     bool movingRight = true;
+    double startTime = GetTime();
 
     while (!WindowShouldClose()) {
         if (playerLife <= 0) {
             DrawText("GAME OVER", screenWidth / 2 - 50, screenHeight / 2, 30, RED);
             break;
         }
+        
+         double elapsedTime = GetTime() - startTime;
 
         if (IsKeyDown(KEY_D)) player.x += PLAYER_SPEED * GetFrameTime();
         if (IsKeyDown(KEY_A)) player.x -= PLAYER_SPEED * GetFrameTime();
@@ -204,7 +207,7 @@ void GameLoop(void) {
                     if (salaAtual->enemy.x <= 0) movingRight = true;
                 }
 
-                if (rand() % 20 == 0) {
+                if (rand() % 10 == 0) {
                     for (int i = 0; i < MAX_ENEMY_BULLETS; i++) {
                         if (!salaAtual->enemyBullets[i].active) {
                             salaAtual->enemyBullets[i].rect = (Rectangle){salaAtual->enemy.x + salaAtual->enemy.width / 2, salaAtual->enemy.y + salaAtual->enemy.height, 5, 10};
@@ -288,6 +291,10 @@ void GameLoop(void) {
         if (salaAtual->enemyAlive) DrawRectangleRec(salaAtual->enemy, RED);
         for (int i = 0; i < MAX_BULLETS; i++) if (bullets[i].active) DrawRectangleRec(bullets[i].rect, BLACK);
         for (int i = 0; i < MAX_ENEMY_BULLETS; i++) if (salaAtual->enemyBullets[i].active) DrawRectangleRec(salaAtual->enemyBullets[i].rect, PURPLE);
+        
+        int minutes = (int)(elapsedTime / 60);
+        int seconds = (int)(elapsedTime) % 60;
+        DrawText(TextFormat("Tempo: %02d:%02d", minutes, seconds), screenWidth - 150, 10, 20, DARKGRAY);
 
         DrawText(TextFormat("Vidas: %d", playerLife), 10, 10, 20, RED);
         EndDrawing();
