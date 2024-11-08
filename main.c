@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <unistd.h>
 
 #define MAX_OPTIONS 4
 #define GRAVITY 500.0f
@@ -158,18 +159,23 @@ void GameLoop(void) {
 
     while (!WindowShouldClose()) {
         if (playerLife <= 0) {
+            ClearBackground(RAYWHITE);
+            BeginDrawing();
             DrawText("GAME OVER", screenWidth / 2 - 50, screenHeight / 2, 30, RED);
+            EndDrawing();
+            sleep(3);
             break;
         }
         
          countdownTime -= GetFrameTime();
-         
+        // countdownTime -= 5;
+
          if (countdownTime <= 0) {
-            countdownTime = 0;
-            BeginDrawing();
             ClearBackground(RAYWHITE);
+            BeginDrawing();
             DrawText("TEMPO ESGOTADO", screenWidth / 2 - 100, screenHeight / 2, 30, RED);
             EndDrawing();
+            sleep(3);
             break;
         }
 
