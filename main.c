@@ -14,7 +14,7 @@
 #define MAX_ENEMY_BULLETS 100
 
 typedef enum {
-    MENU = 0,
+    MENU = 0,   
     JOGO,
     SAIR
 } GameScreen;
@@ -29,6 +29,7 @@ typedef struct Sala {
     int id;
     struct Sala* esquerda;
     struct Sala* direita;
+    Texture2D background;
     Rectangle floor;
     Rectangle ceiling;
     Rectangle enemy;
@@ -100,13 +101,20 @@ Sala* criaSala(int id) {
     sala->ceiling = (Rectangle){0, 0, 800, 50}; // Teto
 
     if (id == 5) {  // Última sala (boss)
+        sala->enemyAlive = true;
+        sala->background = LoadTexture("C:/Users/jmqga/Downloads/AED/jogo/CasteloVania/imagens/scenesample.gif");
         sala->enemy = (Rectangle){0, sala->ceiling.y + sala->ceiling.height, 50, 50}; // Posição inicial perto do teto
         sala->enemyLife = 100;
-    } else if(id>1) {
-        sala->enemy = (Rectangle){600, 450 - 100, 50, 50}; // Inimigo no chão
-        sala->enemyLife = 10;
+    } else {
+        sala->background = LoadTexture("C:/Users/jmqga/Downloads/AED/jogo/CasteloVania/imagens/8d830da54b4e5a98f5734a62fcae4be1ebc505db_2_1035x582.gif");
+        if(id>1){
+            sala->enemyAlive = true;
+            sala->enemy = (Rectangle){600, 450 - 100, 50, 50}; // Inimigo no chão
+            sala->enemyLife = 10;
+        }else if(id == 1){
+            sala->enemyAlive = false;
+        }
     }
-    sala->enemyAlive = true;
 
     // Inicializa os projéteis do inimigo
     for (int i = 0; i < MAX_ENEMY_BULLETS; i++) {
@@ -195,24 +203,30 @@ void GameLoop(void) {
             playerSpeed.y = 0;
             isGrounded = true;
         }
-
-        if (player.x + player.width > screenWidth) {
-            if (salaAtual->direita) {
-                salaAtual = salaAtual->direita;
-                player.x = 0;
-            } else {
-                player.x = screenWidth - player.width;
-            }
-        } else if (player.x < 0) {
-            if (salaAtual->esquerda) {
-                salaAtual = salaAtual->esquerda;
-                player.x = screenWidth - player.width;
-            } else {
-                player.x = 0;
+        
+        if(salaAtual->enemyAlive != true){
+            if (player.x + player.width > screenWidth) {
+                if (salaAtual->direita) {
+                    salaAtual = salaAtual->direita;
+                    player.x = 0;
+                } else {
+                    player.x = screenWidth - player.width;
+                }
+            } else if (player.x < 0) {
+                if (salaAtual->esquerda) {
+                    salaAtual = salaAtual->esquerda;
+                    player.x = screenWidth - player.width;
+                } else {
+                    player.x = 0;
+                }
             }
         }
 
         if (salaAtual->enemyAlive) {
+            
+            if(player.x < 0) player.x = 0;
+            if(player.x > screenWidth - player.width) player.x = screenWidth - player.width;
+            
             if (salaAtual->id == 5) {
                 if (movingRight) {
                     salaAtual->enemy.x += ENEMY_SPEED * GetFrameTime();
@@ -300,8 +314,14 @@ void GameLoop(void) {
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
-
-        DrawRectangleRec(salaAtual->floor, DARKGRAY);
+        
+        if(salaAtual == sala5){
+            DrawTextureEx(salaAtual->background, (Vector2){-20, 10}, 0.0f, 1.8f, RAYWHITE);
+        }else{
+            DrawTexture(salaAtual->background, 0, -90, RAYWHITE);
+        }
+        
+        DrawRectangleLines(0, 450 - 50, 800, 50, DARKGRAY);
         DrawRectangleRec(player, BLUE);
         if (salaAtual->enemyAlive) DrawRectangleRec(salaAtual->enemy, RED);
         for (int i = 0; i < MAX_BULLETS; i++) if (bullets[i].active) DrawRectangleRec(bullets[i].rect, BLACK);
