@@ -19,10 +19,10 @@ Antes de executar o jogo você precisa ter a biblioteca [raylib](https://www.ray
 
 - Livre o castelo da maldição! 😈
 
-  # 🎮Como o jogo funciona
-  O jogador utilizará "a-w-d" para mover o personagem e "⭠-⭡-⭢" para disparar. Você só poderá avançar nas salas caso elimine o inimigo que está nela. O jogo possui um tempo limite. A última sala é a do boss.
+# 🎮Como o jogo funciona
+O jogador utilizará "a-w-d" para mover o personagem e "⭠-⭡-⭢" para disparar. Você só poderá avançar nas salas caso elimine o inimigo que está nela. O jogo possui um tempo limite. A última sala é a do boss.
 
-  # 👽Membros
+# 👽Membros
 
 <table>
   <tr>
