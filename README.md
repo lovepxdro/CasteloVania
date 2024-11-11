@@ -9,7 +9,7 @@ O dono do Castelo dos Torres foi amaldiçoado por um fantasma e condenado a cons
 # 💻Como rodar o jogo
 Antes de executar o jogo você precisa ter a biblioteca [raylib](https://www.raylib.com/) instalada.
 
-- Clone o repositório (ou faça o download do arquivo [aqui](https://github.com/lovepxdro/CasteloVania.git)):
+- Clone o repositório (ou faça o download):
   <div style="display: flex; align-items: center;">
   <pre style="margin: 0; padding: 0.5em; background: #f0f0f0; border: 1px solid #ddd; border-radius: 5px;">
     <code id="repo-url">git clone https://github.com/lovepxdro/CasteloVania.git</code>
