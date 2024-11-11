@@ -11,15 +11,15 @@ O dono do Castelo dos Torres foi amaldiçoado por um fantasma e condenado a cons
 # 💻Como rodar o jogo
 Antes de executar o jogo você precisa ter a biblioteca [raylib](https://www.raylib.com/) instalada.
 
-- Clone o repositório (ou faça o download):
-  <div style="display: flex; align-items: center;">
-  <pre style="margin: 0; padding: 0.5em; background: #f0f0f0; border: 1px solid #ddd; border-radius: 5px;">
-    <code id="repo-url">git clone https://github.com/lovepxdro/CasteloVania.git</code>
-  </pre>
-  <button onclick="copyToClipboard('repo-url')"></button
-</div>
+- Clone o repositório (ou faça o download)
+  ```
+  git clone https://github.com/lovepxdro/CasteloVania.git
+  ```
 
-- ainda falta terminar essa parte do readme
+- Compile e execute o programa
+  ```
+  cd CasteloVania && make && ./vania
+  ```
 
 - Livre o castelo da maldição! 😈
 ---
