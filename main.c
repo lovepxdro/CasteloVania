@@ -9,7 +9,8 @@
 #define JUMP_FORCE -300.0f
 #define PLAYER_SPEED 200.0f
 #define BULLET_SPEED 500.0f
-#define ENEMY_SPEED 100.0f
+#define ENEMY_SPEED 160.0f
+#define BOSS_SPEED 100.0f
 #define MAX_BULLETS 10
 #define MAX_ENEMY_BULLETS 100
 
@@ -104,13 +105,13 @@ Sala* criaSala(int id) {
         sala->enemyAlive = true;
         sala->background = LoadTexture("./imagens/scenesample.gif");
         sala->enemy = (Rectangle){0, sala->ceiling.y + sala->ceiling.height, 50, 50}; // Posição inicial perto do teto
-        sala->enemyLife = 100;
+        sala->enemyLife = 130;
     } else {
         sala->background = LoadTexture("./imagens/8d830da54b4e5a98f5734a62fcae4be1ebc505db_2_1035x582.gif");
         if(id>1){
             sala->enemyAlive = true;
             sala->enemy = (Rectangle){600, 450 - 100, 50, 50}; // Inimigo no chão
-            sala->enemyLife = 10;
+            sala->enemyLife = 30;
         }else if(id == 1){
             sala->enemyAlive = false;
         }
@@ -229,10 +230,10 @@ void GameLoop(void) {
             
             if (salaAtual->id == 5) {
                 if (movingRight) {
-                    salaAtual->enemy.x += ENEMY_SPEED * GetFrameTime();
+                    salaAtual->enemy.x += BOSS_SPEED * GetFrameTime();
                     if (salaAtual->enemy.x + salaAtual->enemy.width >= screenWidth) movingRight = false;
                 } else {
-                    salaAtual->enemy.x -= ENEMY_SPEED * GetFrameTime();
+                    salaAtual->enemy.x -= BOSS_SPEED * GetFrameTime();
                     if (salaAtual->enemy.x <= 0) movingRight = true;
                 }
 
