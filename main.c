@@ -68,7 +68,7 @@ void saveScore(const char *name, int score) {
     int currentCount = 0;
 
     // Temporary list to hold scores for rewriting
-    PlayerScore scores[MAX_SCORES];  // Define MAX_SCORES as needed
+    PlayerScore scores[MAX_SCORE];  // Define MAX_SCORES as needed
 
     // Read scores from file and check if the name exists
     while (fscanf(file, "%50s %d", temp.name, &temp.score) == 2) {
