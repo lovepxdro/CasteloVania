@@ -68,7 +68,7 @@ void saveScore(const char *name, int score) {
     int currentCount = 0;
 
     // Temporary list to hold scores for rewriting
-    PlayerScore scores[MAX_SCORE];  // Define MAX_SCORES as needed
+    PlayerScore scores[MAX_SCORE];
 
     // Read scores from file and check if the name exists
     while (fscanf(file, "%50s %d", temp.name, &temp.score) == 2) {
@@ -490,36 +490,21 @@ int main(void) {
 
     SetTargetFPS(60);
 
-    // Continua chamando o menu até que a opção "Iniciar" seja escolhida
     GameScreen currentScreen = MENU;
     while (currentScreen == MENU) {
         currentScreen = Menu();
     }
 
-    // Se a opção selecionada foi "Sair", fecha a janela
     if (currentScreen == SAIR) {
         CloseWindow();
         return 0;
     }
     
-    int score = 0;
-    bool gameOver = false;
-
-    // Lógica do jogo principal
-    while (!WindowShouldClose()) {
-        // Volta ao menu principal ao pressionar ESC
-        if (IsKeyPressed(KEY_ESCAPE)) {
-            break;
-        }
-        score = GameLoop();
-        gameOver = true;
-    }
+    int score = GameLoop();  // Just call GameLoop once and get the score
+    
+    // Only save if we got a valid score (greater than 0)
+    saveScore(playerName, score);
 
     CloseWindow();
-    
-    if(gameOver == true){
-        saveScore(playerName, score);
-    }
-    
     return 0;
 }
