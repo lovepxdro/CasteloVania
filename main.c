@@ -10,8 +10,9 @@
 #define JUMP_FORCE -300.0f
 #define PLAYER_SPEED 200.0f
 #define BULLET_SPEED 500.0f
-#define ENEMY_SPEED 100.0f
-#define MAX_SCORES 10
+#define ENEMY_SPEED 160.0f
+#define BOSS_SPEED 100.0f
+#define MAX_SCORE 10
 #define MAX_BULLETS 10
 #define MAX_ENEMY_BULLETS 100
 
@@ -48,7 +49,7 @@ typedef struct Sala {
 
 char playerName[51] = "";
 int charIndex = 0;
-PlayerScore ranking[10];
+PlayerScore ranking[MAX_SCORE];
 
 void saveScore(const char *name, int score) {
     if(name == NULL){
@@ -193,13 +194,13 @@ Sala* criaSala(int id) {
         sala->enemyAlive = true;
         sala->background = LoadTexture("./imagens/scenesample.gif");
         sala->enemy = (Rectangle){0, sala->ceiling.y + sala->ceiling.height, 50, 50}; // Posição inicial perto do teto
-        sala->enemyLife = 100;
+        sala->enemyLife = 130;
     } else {
         sala->background = LoadTexture("./imagens/8d830da54b4e5a98f5734a62fcae4be1ebc505db_2_1035x582.gif");
         if(id>1){
             sala->enemyAlive = true;
             sala->enemy = (Rectangle){600, 450 - 100, 50, 50}; // Inimigo no chão
-            sala->enemyLife = 10;
+            sala->enemyLife = 30;
         }else if(id == 1){
             sala->enemyAlive = false;
         }
@@ -285,13 +286,17 @@ int GameLoop(void) {
 
     while (!WindowShouldClose()) {
         if (playerLife <= 0) {
-            ClearBackground(RAYWHITE);
-            BeginDrawing();
-            DrawText("GAME OVER", screenWidth / 2 - 50, screenHeight / 2, 30, RED);
-            EndDrawing();
-            sleep(3);
-            break;
-        }
+        ClearBackground(RAYWHITE);
+        BeginDrawing();
+        
+        const char *gameOverText = "GAME OVER";
+        int textWidth = MeasureText(gameOverText, 30);
+        DrawText(gameOverText, (800 - textWidth) / 2, 420 / 2, 30, RED);
+
+        EndDrawing();
+        sleep(3);
+        break;
+    }
         
          countdownTime -= GetFrameTime();
         // countdownTime -= 5;
@@ -299,7 +304,11 @@ int GameLoop(void) {
          if (countdownTime <= 0) {
             ClearBackground(RAYWHITE);
             BeginDrawing();
-            DrawText("TEMPO ESGOTADO", screenWidth / 2 - 100, screenHeight / 2, 30, RED);
+
+            const char *timeoutText = "TEMPO ESGOTADO";
+            int textWidth = MeasureText(timeoutText, 30);
+            DrawText(timeoutText, (800 - textWidth) / 2, 420 / 2, 30, RED);
+
             EndDrawing();
             sleep(3);
             break;
@@ -356,10 +365,10 @@ int GameLoop(void) {
             
             if (salaAtual->id == 5) {
                 if (movingRight) {
-                    salaAtual->enemy.x += ENEMY_SPEED * GetFrameTime();
+                    salaAtual->enemy.x += BOSS_SPEED * GetFrameTime();
                     if (salaAtual->enemy.x + salaAtual->enemy.width >= screenWidth) movingRight = false;
                 } else {
-                    salaAtual->enemy.x -= ENEMY_SPEED * GetFrameTime();
+                    salaAtual->enemy.x -= BOSS_SPEED * GetFrameTime();
                     if (salaAtual->enemy.x <= 0) movingRight = true;
                 }
 
@@ -455,7 +464,7 @@ int GameLoop(void) {
         DrawRectangleRec(player, BLUE);
         if (salaAtual->enemyAlive) DrawRectangleRec(salaAtual->enemy, RED);
         for (int i = 0; i < MAX_BULLETS; i++) if (bullets[i].active) DrawRectangleRec(bullets[i].rect, BLACK);
-        for (int i = 0; i < MAX_ENEMY_BULLETS; i++) if (salaAtual->enemyBullets[i].active) DrawRectangleRec(salaAtual->enemyBullets[i].rect, PURPLE);
+        for (int i = 0; i < MAX_ENEMY_BULLETS; i++) if (salaAtual->enemyBullets[i].active) DrawRectangleRec(salaAtual->enemyBullets[i].rect, WHITE);
         
         int minutes = (int)(countdownTime / 60);
         int seconds = (int)(countdownTime) % 60;
