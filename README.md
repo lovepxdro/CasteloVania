@@ -1,9 +1,11 @@
 # 👻CasteloVania
 CasteloVania é um simples jogo clone do clássico Castlevania. Desenvolvido como projeto para a disciplina de AED, o tema do jogo é o ponto turístico "Castelo dos Fortes" localizado em Pesqueira-PE. Os requisitos escolhidos para o jogo foram: Listas duplamente encadeadas e bubbleSort V2. Nesse jogo você terá que percorrer salas e enfrentar fantasmas até conseguir chegar a última sala e conseguir expulsar o espírito maligno do castelo.
+
 ---
 
 # 📖Narrativa
 O dono do Castelo dos Torres foi amaldiçoado por um fantasma e condenado a construí-lo eternamente, sem jamais ficar satisfeito. Um exorcista chega ao castelo com a missão de libertá-lo, enfrentando o espírito vingativo e quebrando o ciclo de tormento que mantém o castelo inacabado.
+
 ---
 
 # 💻Como rodar o jogo
@@ -24,6 +26,7 @@ Antes de executar o jogo você precisa ter a biblioteca [raylib](https://www.ray
 
 # 🎮Como o jogo funciona
 O jogador utilizará "w-a-d" para mover o personagem e as setas para disparar. Você só poderá avançar nas salas caso elimine o inimigo que está nela. O jogo possui um tempo limite. A última sala é a do boss.
+
 ---
 
 # 👽Membros
