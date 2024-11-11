@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
@@ -10,14 +11,21 @@
 #define PLAYER_SPEED 200.0f
 #define BULLET_SPEED 500.0f
 #define ENEMY_SPEED 100.0f
+#define MAX_SCORES 10
 #define MAX_BULLETS 10
 #define MAX_ENEMY_BULLETS 100
 
 typedef enum {
     MENU = 0,   
+    RANKING,
     JOGO,
     SAIR
 } GameScreen;
+
+typedef struct PlayerScore{
+    char name[51];
+    int score;
+} PlayerScore;
 
 typedef struct Bullet {
     Rectangle rect;
@@ -38,10 +46,86 @@ typedef struct Sala {
     Bullet enemyBullets[MAX_ENEMY_BULLETS];
 } Sala;
 
+char playerName[51] = "";
+int charIndex = 0;
+PlayerScore ranking[10];
+
+void saveScore(const char *name, int score) {
+    if(name == NULL){
+        return;
+    }
+    
+    // Open file for reading
+    FILE *file = fopen("Ranking.txt", "r");
+    if (!file) {
+        printf("Oh no\n");
+        return;
+    }
+
+    PlayerScore temp;
+    bool nameExists = false;
+    int currentCount = 0;
+
+    // Temporary list to hold scores for rewriting
+    PlayerScore scores[MAX_SCORES];  // Define MAX_SCORES as needed
+
+    // Read scores from file and check if the name exists
+    while (fscanf(file, "%50s %d", temp.name, &temp.score) == 2) {
+        scores[currentCount++] = temp;
+        if (strcmp(temp.name, name) == 0) {
+            nameExists = true;
+            // Update score if the new one is higher
+            if (score > temp.score) {
+                scores[currentCount - 1].score = score;
+            }
+        }
+    }
+    fclose(file);
+
+    // If the name doesn’t exist, add it to the list
+    if (!nameExists) {
+        strcpy(scores[currentCount].name, name);
+        scores[currentCount].score = score;
+        currentCount++;
+    }
+
+    // Rewrite the file with updated scores
+    file = fopen("Ranking.txt", "w");
+    if (!file) {
+        printf(":(\n");
+        return;
+    }
+
+    for (int i = 0; i < currentCount; i++) {
+        if(strcmp(scores[i].name, "") == 0 || strcmp(scores[i].name, " ") == 0){
+            break;
+        }
+        fprintf(file, "%s %d\n", scores[i].name, (int)scores[i].score);
+        printf("Saving %s %d to file\n", scores[i].name, (int)scores[i].score);  // Debugging print
+    }
+    fclose(file);
+}
+
+int contScore(PlayerScore *ranking) {
+    FILE *file = fopen("Ranking.txt", "r");  // Open in read mode
+    if (!file) {
+        printf("Oh oh\n");
+        return 0;
+    }
+
+    int cont = 0;
+    while (cont < 10 && fscanf(file, "%50s %d", ranking[cont].name, &ranking[cont].score) == 2) {
+        cont++;
+    }
+    fclose(file);
+    return cont;
+}
+
 GameScreen Menu(void) {
     const int screenWidth = 800;
     const int screenHeight = 420;
     int selectedOption = 0;
+    int numRanking = contScore(ranking);
     const char *menuOptions[MAX_OPTIONS] = { "Iniciar", "Instruções", "Ranking", "Sair" };
 
     while (!WindowShouldClose()) {
@@ -80,10 +164,15 @@ GameScreen Menu(void) {
                 DrawText("Instruções", screenWidth * 3 / 4 - MeasureText("Instruções", 30) / 2, 50, 30, DARKBLUE);
                 DrawText("Use W-A-D para movimentar o personagem.", screenWidth / 2 + 20, 150, 17, DARKGRAY);
                 DrawText("Use as setas para disparar.", screenWidth / 2 + 20, 190, 17, DARKGRAY);
+                DrawText("Aperte ESC para parar de jogar.", screenWidth / 2 + 20, 220, 17, DARKGRAY);
             } else if (selectedOption == 2) {  // Ranking
                 DrawText("Ranking", screenWidth * 3 / 4 - MeasureText("Ranking", 30) / 2, 50, 30, DARKBLUE);
-                DrawText("Veja as pontuações mais altas aqui!", screenWidth / 2 + 20, 150, 17, DARKGRAY);
-                DrawText("Ainda não há pontuações disponíveis.", screenWidth / 2 + 20, 190, 17, DARKGRAY);
+                DrawText("Top 10 melhores pontuações!", screenWidth / 2 + 20, 130, 17, DARKGRAY);
+                for(int i = 0; i < numRanking; i++){
+                    char text[100];
+                    snprintf(text, sizeof(text), "%d. %s - %d", i + 1, ranking[i].name, ranking[i].score);
+                    DrawText(text, screenWidth / 2 + 20, 160 + i * 25, 17, DARKGRAY);
+                }
             }
 
         EndDrawing();
@@ -131,7 +220,34 @@ void liberaSalas(Sala* sala) {
     }
 }
 
-void GameLoop(void) {
+void GetPlayerName(){
+    const int screenWidth = 800;
+    const int screenHeight = 450;
+    
+    while(!WindowShouldClose()){
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+        
+        DrawText("Coloque o seu nome:", screenWidth / 2 - MeasureText("Coloque o seu nome:", 20) / 2, screenHeight / 2 - 50, 20, DARKBLUE);
+        DrawText(playerName, screenWidth / 2 - MeasureText(playerName, 20) / 2, screenHeight / 2, 20, BLACK);
+        
+        EndDrawing();
+        
+        int key = GetKeyPressed();
+        if(key >= 32 && key <= 125 && charIndex < 50){
+            playerName[charIndex++] = (char)key;
+            playerName[charIndex] = '\0';
+        }
+        if(IsKeyPressed(KEY_BACKSPACE) && charIndex > 0){
+            playerName[--charIndex] = '\0';
+        }
+        if(IsKeyPressed(KEY_ENTER)){
+            break;
+        }
+    }
+}
+
+int GameLoop(void) {
     const int screenWidth = 800;
     const int screenHeight = 450;
     InitWindow(screenWidth, screenHeight, "CasteloVania");
@@ -154,6 +270,8 @@ void GameLoop(void) {
 
     Rectangle player = {100, screenHeight - 100, 50, 50};
     Vector2 playerSpeed = {0, 0};
+    int enemyDiedCount = 0;
+    int score;
     bool isGrounded = false;
     int playerLife = 1;
 
@@ -182,6 +300,15 @@ void GameLoop(void) {
             ClearBackground(RAYWHITE);
             BeginDrawing();
             DrawText("TEMPO ESGOTADO", screenWidth / 2 - 100, screenHeight / 2, 30, RED);
+            EndDrawing();
+            sleep(3);
+            break;
+        }
+        
+        if (salaAtual->enemyAlive == false && salaAtual == sala5){
+            ClearBackground(RAYWHITE);
+            BeginDrawing();
+            DrawText("VITÓRIA!", screenWidth / 2 - 100, screenHeight / 2, 30, GREEN);
             EndDrawing();
             sleep(3);
             break;
@@ -307,7 +434,10 @@ void GameLoop(void) {
                 if (salaAtual->enemyAlive && CheckCollisionRecs(bullets[i].rect, salaAtual->enemy)) {
                     salaAtual->enemyLife -= 1;
                     bullets[i].active = false;
-                    if (salaAtual->enemyLife <= 0) salaAtual->enemyAlive = false;
+                    if (salaAtual->enemyLife <= 0){
+                      salaAtual->enemyAlive = false;
+                      enemyDiedCount += 1;
+                    }
                 }
             }
         }
@@ -334,9 +464,14 @@ void GameLoop(void) {
         DrawText(TextFormat("Vidas: %d", playerLife), 10, 10, 20, WHITE);
         EndDrawing();
     }
-
+    
+    score = enemyDiedCount * (int)countdownTime;
+    GetPlayerName();
+    
     liberaSalas(sala1);
-    CloseWindow();
+    
+    return score;
+    
 }
 
 int main(void) {
@@ -357,18 +492,25 @@ int main(void) {
         CloseWindow();
         return 0;
     }
+    
+    int score = 0;
+    bool gameOver = false;
 
     // Lógica do jogo principal
     while (!WindowShouldClose()) {
         // Volta ao menu principal ao pressionar ESC
         if (IsKeyPressed(KEY_ESCAPE)) {
-            currentScreen = Menu();
-            if (currentScreen == SAIR) break;
+            break;
         }
-        CloseWindow();
-        GameLoop();
+        score = GameLoop();
+        gameOver = true;
     }
 
     CloseWindow();
+    
+    if(gameOver == true){
+        saveScore(playerName, score);
+    }
+    
     return 0;
 }
