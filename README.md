@@ -37,7 +37,7 @@ O jogador utilizará "w-a-d" para mover o personagem e as setas para disparar. V
         <sub><b>Érico Chen</b></sub>
       </a>
       <br>
-      <sub><b>✉️ @cesar.school</b></sub>
+      <sub><b>✉️ ec2@cesar.school</b></sub>
     </td>
     <td align="center">
       <a href="https://github.com/lovepxdro">
@@ -64,7 +64,7 @@ O jogador utilizará "w-a-d" para mover o personagem e as setas para disparar. V
         <sub><b>Pablo Muniz</b></sub>
       </a>
       <br>
-      <sub><b>✉️ @cesar.school</b></sub>
+      <sub><b>✉️ pcm7@cesar.school</b></sub>
     </td>
   </tr>
 </table>
