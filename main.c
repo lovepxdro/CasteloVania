@@ -165,7 +165,7 @@ GameScreen Menu(void) {
                 DrawText("Instruções", screenWidth * 3 / 4 - MeasureText("Instruções", 30) / 2, 50, 30, DARKBLUE);
                 DrawText("Use W-A-D para movimentar o personagem.", screenWidth / 2 + 20, 150, 17, DARKGRAY);
                 DrawText("Use as setas para disparar.", screenWidth / 2 + 20, 190, 17, DARKGRAY);
-                DrawText("Aperte ESC para parar de jogar.", screenWidth / 2 + 20, 220, 17, DARKGRAY);
+                DrawText("Aperte ESC para parar de jogar.", screenWidth / 2 + 20, 230, 17, DARKGRAY);
             } else if (selectedOption == 2) {  // Ranking
                 DrawText("Ranking", screenWidth * 3 / 4 - MeasureText("Ranking", 30) / 2, 50, 30, DARKBLUE);
                 DrawText("Top 10 melhores pontuações!", screenWidth / 2 + 20, 130, 17, DARKGRAY);
