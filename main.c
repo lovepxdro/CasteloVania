@@ -102,11 +102,11 @@ Sala* criaSala(int id) {
 
     if (id == 5) {  // Última sala (boss)
         sala->enemyAlive = true;
-        sala->background = LoadTexture("C:/Users/jmqga/Downloads/AED/jogo/CasteloVania/imagens/scenesample.gif");
+        sala->background = LoadTexture("./imagens/scenesample.gif");
         sala->enemy = (Rectangle){0, sala->ceiling.y + sala->ceiling.height, 50, 50}; // Posição inicial perto do teto
         sala->enemyLife = 100;
     } else {
-        sala->background = LoadTexture("C:/Users/jmqga/Downloads/AED/jogo/CasteloVania/imagens/8d830da54b4e5a98f5734a62fcae4be1ebc505db_2_1035x582.gif");
+        sala->background = LoadTexture("./imagens/8d830da54b4e5a98f5734a62fcae4be1ebc505db_2_1035x582.gif");
         if(id>1){
             sala->enemyAlive = true;
             sala->enemy = (Rectangle){600, 450 - 100, 50, 50}; // Inimigo no chão
@@ -155,7 +155,7 @@ void GameLoop(void) {
     Rectangle player = {100, screenHeight - 100, 50, 50};
     Vector2 playerSpeed = {0, 0};
     bool isGrounded = false;
-    int playerLife = 3;
+    int playerLife = 1;
 
     Bullet bullets[MAX_BULLETS] = {0};
     for (int i = 0; i < MAX_BULLETS; i++) bullets[i].active = false;
@@ -163,7 +163,7 @@ void GameLoop(void) {
     srand(time(NULL));
     SetTargetFPS(60);
     bool movingRight = true;
-    double countdownTime = 180.0;
+    double countdownTime = 120.0;
 
     while (!WindowShouldClose()) {
         if (playerLife <= 0) {
@@ -236,7 +236,7 @@ void GameLoop(void) {
                     if (salaAtual->enemy.x <= 0) movingRight = true;
                 }
 
-                if (rand() % 10 == 0) {
+                if (rand() % 8 == 0) {
                     for (int i = 0; i < MAX_ENEMY_BULLETS; i++) {
                         if (!salaAtual->enemyBullets[i].active) {
                             salaAtual->enemyBullets[i].rect = (Rectangle){salaAtual->enemy.x + salaAtual->enemy.width / 2, salaAtual->enemy.y + salaAtual->enemy.height, 5, 10};
@@ -329,9 +329,9 @@ void GameLoop(void) {
         
         int minutes = (int)(countdownTime / 60);
         int seconds = (int)(countdownTime) % 60;
-        DrawText(TextFormat("Tempo: %02d:%02d", minutes, seconds), screenWidth - 150, 10, 20, DARKGRAY);
+        DrawText(TextFormat("Tempo: %02d:%02d", minutes, seconds), screenWidth - 150, 10, 20, WHITE);
 
-        DrawText(TextFormat("Vidas: %d", playerLife), 10, 10, 20, RED);
+        DrawText(TextFormat("Vidas: %d", playerLife), 10, 10, 20, WHITE);
         EndDrawing();
     }
 
