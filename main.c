@@ -168,25 +168,33 @@ void GameLoop(void) {
 
     while (!WindowShouldClose()) {
         if (playerLife <= 0) {
-            ClearBackground(RAYWHITE);
-            BeginDrawing();
-            DrawText("GAME OVER", screenWidth / 2 - 50, screenHeight / 2, 30, RED);
-            EndDrawing();
-            sleep(3);
-            break;
-        }
+        ClearBackground(RAYWHITE);
+        BeginDrawing();
+        
+        const char *gameOverText = "GAME OVER";
+        int textWidth = MeasureText(gameOverText, 30);
+        DrawText(gameOverText, (800 - textWidth) / 2, 420 / 2, 30, RED);
+
+        EndDrawing();
+        sleep(3);
+        break;
+    }
         
          countdownTime -= GetFrameTime();
         // countdownTime -= 5;
 
          if (countdownTime <= 0) {
-            ClearBackground(RAYWHITE);
-            BeginDrawing();
-            DrawText("TEMPO ESGOTADO", screenWidth / 2 - 100, screenHeight / 2, 30, RED);
-            EndDrawing();
-            sleep(3);
-            break;
-        }
+        ClearBackground(RAYWHITE);
+        BeginDrawing();
+
+        const char *timeoutText = "TEMPO ESGOTADO";
+        int textWidth = MeasureText(timeoutText, 30);
+        DrawText(timeoutText, (800 - textWidth) / 2, 420 / 2, 30, RED);
+
+        EndDrawing();
+        sleep(3);
+        break;
+    }
 
         if (IsKeyDown(KEY_D)) player.x += PLAYER_SPEED * GetFrameTime();
         if (IsKeyDown(KEY_A)) player.x -= PLAYER_SPEED * GetFrameTime();
@@ -326,7 +334,7 @@ void GameLoop(void) {
         DrawRectangleRec(player, BLUE);
         if (salaAtual->enemyAlive) DrawRectangleRec(salaAtual->enemy, RED);
         for (int i = 0; i < MAX_BULLETS; i++) if (bullets[i].active) DrawRectangleRec(bullets[i].rect, BLACK);
-        for (int i = 0; i < MAX_ENEMY_BULLETS; i++) if (salaAtual->enemyBullets[i].active) DrawRectangleRec(salaAtual->enemyBullets[i].rect, PURPLE);
+        for (int i = 0; i < MAX_ENEMY_BULLETS; i++) if (salaAtual->enemyBullets[i].active) DrawRectangleRec(salaAtual->enemyBullets[i].rect, WHITE);
         
         int minutes = (int)(countdownTime / 60);
         int seconds = (int)(countdownTime) % 60;
