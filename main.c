@@ -27,12 +27,12 @@ typedef enum {
 } AnimationState;
     
 typedef struct {
-    Texture2D texture;     // Sprite sheet texture
-    float frameWidth;      // Width of each frame
-    int maxFrames;         // Total number of frames
-    int currentFrame;      // Current frame being displayed
-    float frameTimer;      // Timer for frame updates
-    bool flipped;          // Direction the sprite is facing
+    Texture2D texture;    
+    float frameWidth;     
+    int maxFrames;        
+    int currentFrame;     
+    float frameTimer;     
+    bool flipped;         
 } Animation;
 
 typedef enum {
@@ -75,7 +75,6 @@ void saveScore(const char *name, int score) {
         return;
     }
 
-    // Open file for reading
     FILE *file = fopen("Ranking.txt", "r");
     if (!file) {
         printf("Oh no\n");
@@ -86,15 +85,12 @@ void saveScore(const char *name, int score) {
     bool nameExists = false;
     int currentCount = 0;
 
-    // Temporary list to hold scores for rewriting
     PlayerScore scores[MAX_SCORE];
 
-    // Read scores from file and check if the name exists
     while (fscanf(file, "%50s %d", temp.name, &temp.score) == 2) {
         scores[currentCount++] = temp;
         if (strcmp(temp.name, name) == 0) {
             nameExists = true;
-            // Update score if the new one is higher
             if (score > temp.score) {
                 scores[currentCount - 1].score = score;
             }
@@ -102,18 +98,15 @@ void saveScore(const char *name, int score) {
     }
     fclose(file);
 
-    // If the name doesn’t exist, add it to the list
     if (!nameExists) {
         strcpy(scores[currentCount].name, name);
         scores[currentCount].score = score;
         currentCount++;
     }
 
-    // Order ranking with Bubble sort
     for (int i = 0; i < currentCount - 1; i++) {
         for (int j = 0; j < currentCount - 1 - i; j++) {
             if (scores[j].score < scores[j + 1].score) {
-                // Switch positions
                 PlayerScore temp = scores[j];
                 scores[j] = scores[j + 1];
                 scores[j + 1] = temp;
@@ -121,7 +114,6 @@ void saveScore(const char *name, int score) {
         }
     }
 
-    // Rewrite the file with updated scores
     file = fopen("Ranking.txt", "w");
     if (!file) {
         printf(":(\n");
@@ -133,14 +125,14 @@ void saveScore(const char *name, int score) {
             break;
         }
         fprintf(file, "%s %d\n", scores[i].name, (int)scores[i].score);
-        printf("Saving %s %d to file\n", scores[i].name, (int)scores[i].score);  // Debugging print
+        printf("Saving %s %d to file\n", scores[i].name, (int)scores[i].score);
     }
     fclose(file);
 }
 
 
 int contScore(PlayerScore *ranking) {
-    FILE *file = fopen("Ranking.txt", "r");  // Open in read mode
+    FILE *file = fopen("Ranking.txt", "r");
     if (!file) {
         printf("Oh oh\n");
         return 0;
@@ -152,11 +144,9 @@ int contScore(PlayerScore *ranking) {
     }
     fclose(file);
 
-    // Order using bubble sort
     for (int i = 0; i < cont - 1; i++) {
         for (int j = 0; j < cont - 1 - i; j++) {
             if (ranking[j].score < ranking[j + 1].score) {
-                // Switch positions
                 PlayerScore temp = ranking[j];
                 ranking[j] = ranking[j + 1];
                 ranking[j + 1] = temp;
@@ -168,34 +158,31 @@ int contScore(PlayerScore *ranking) {
 }
 
 void Transition(Texture2D image1, Texture2D image2, float delayTime) {
-    float alpha = 0.0f; // Alpha para a transição
+    float alpha = 0.0f;
     bool transitioning = false;
     float timer = 0.0f;
 
     while (!WindowShouldClose()) {
-        // Atualiza o timer para o delay da imagem inicial
         if (!transitioning) {
             timer += GetFrameTime();
             if (timer >= delayTime) {
-                transitioning = true;  // Inicia a transição após o tempo de espera
+                transitioning = true;
             }
         }
 
-        // Atualiza o valor de alpha durante a transição
         if (transitioning) {
-            alpha += 0.01f; // Velocidade da transição
+            alpha += 0.01f;
             if (alpha >= 1.0f) {
                 alpha = 1.0f;
-                break; // Termina a transição e sai do loop
+                break;
             }
         }
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        // Desenha as duas imagens com alpha ajustado
         DrawTexture(image1, 0, 0, WHITE);
-        DrawTexture(image2, 0, 0, Fade(WHITE, alpha)); // A próxima imagem vai aparecendo
+        DrawTexture(image2, 0, 0, Fade(WHITE, alpha));
 
         EndDrawing();
     }
@@ -209,7 +196,6 @@ GameScreen Menu(void) {
     Texture2D image2 = LoadTexture("./images/AAAAAAAAAAAAAAAAAAA.png");
     Transition(image1, image2, 2.0f);
 
-    // Libera as texturas usadas na transição
     UnloadTexture(image1);
     UnloadTexture(image2);
     
@@ -228,53 +214,46 @@ GameScreen Menu(void) {
     
     while (!WindowShouldClose()) {
         UpdateMusicStream(menuMusic);
-        // Controle de navegação no menu
         if (IsKeyPressed(KEY_DOWN)) selectedOption = (selectedOption + 1) % MAX_OPTIONS;
         if (IsKeyPressed(KEY_UP)) selectedOption = (selectedOption - 1 + MAX_OPTIONS) % MAX_OPTIONS;
 
-        // Verifica se a opção foi selecionada com Enter
         if (IsKeyPressed(KEY_ENTER)) {
             if (selectedOption == 0) {
-                StopMusicStream(menuMusic);  // Para a música antes de iniciar o jogo
-                UnloadMusicStream(menuMusic); // Descarrega o stream de música do menu
+                StopMusicStream(menuMusic);
+                UnloadMusicStream(menuMusic);
                 UnloadTexture(menuBackground);
                 CloseAudioDevice();
-                return JOGO;  // Selecionou "Iniciar", encerra o menu e inicia o jogo
+                return JOGO;
             } else if (selectedOption == 3) {
-                StopMusicStream(menuMusic);  // Para a música antes de iniciar o jogo
-                UnloadMusicStream(menuMusic); // Descarrega o stream de música do menu
+                StopMusicStream(menuMusic);
+                UnloadMusicStream(menuMusic);
                 UnloadTexture(menuBackground);
                 CloseAudioDevice();
-                return SAIR;  // Selecionou "Sair", encerra o programa
+                return SAIR;
             }
         }
 
-        // Desenho do menu dividido
         BeginDrawing();
             ClearBackground(RAYWHITE);
             
             DrawTexture(menuBackground, 0, 0, WHITE);
 
-            // Divisão da tela
             DrawRectangle(0, 0, screenWidth / 2, screenHeight, semiTransparent);
             DrawRectangle(screenWidth / 2, 0, screenWidth / 2, screenHeight, semiTransparent);
 
-            // Exibe o título do menu
             DrawText("Menu Principal", screenWidth / 4 - MeasureText("Menu Principal", 30) / 2, 50, 30, DARKBLUE);
 
-            // Exibe as opções do menu na área esquerda
             for (int i = 0; i < MAX_OPTIONS; i++) {
                 Color color = (i == selectedOption) ? RED : BLACK;
                 DrawText(menuOptions[i], screenWidth / 4 - MeasureText(menuOptions[i], 20) / 2, 150 + i * 40, 20, color);
             }
 
-            // Exibe informações na área direita automaticamente para "Instruções" e "Ranking"
-            if (selectedOption == 1) {  // Instruções
+            if (selectedOption == 1) {
                 DrawText("Instruções", screenWidth * 3 / 4 - MeasureText("Instruções", 30) / 2, 50, 30, DARKBLUE);
                 DrawText("Use W-A-D para movimentar o personagem.", screenWidth / 2 + 20, 150, 17, BLACK);
                 DrawText("Use as setas para disparar.", screenWidth / 2 + 20, 190, 17, BLACK);
                 DrawText("Aperte ESC para parar de jogar.", screenWidth / 2 + 20, 230, 17, BLACK);
-            } else if (selectedOption == 2) {  // Ranking
+            } else if (selectedOption == 2) {
                 DrawText("Ranking", screenWidth * 3 / 4 - MeasureText("Ranking", 30) / 2, 50, 30, DARKBLUE);
                 DrawText("Top 10 melhores pontuações!", screenWidth / 2 + 20, 130, 17, BLACK);
                 for(int i = 0; i < numRanking; i++){
@@ -391,12 +370,12 @@ int GameLoop(void) {
 
     Sala* salaAtual = sala1;
 
-    Rectangle player = {100, screenHeight - 150, 60, 90}; // Hitbox
+    Rectangle player = {100, screenHeight - 150, 60, 90};
     Vector2 playerSpeed = {0, 0};
     int enemyDiedCount = 0;
     int score;
     bool isGrounded = false;
-    int playerLife = 1;
+    int playerLife = 2;
 
     Bullet bullets[MAX_BULLETS] = {0};
     for (int i = 0; i < MAX_BULLETS; i++) bullets[i].active = false;
@@ -452,7 +431,6 @@ int GameLoop(void) {
     }
         
          countdownTime -= GetFrameTime();
-        // countdownTime -= 5;
 
          if (countdownTime <= 0) {
             StopMusicStream(lvlMusic);
@@ -474,6 +452,9 @@ int GameLoop(void) {
             PlaySound(victory);
             ClearBackground(RAYWHITE);
             BeginDrawing();
+            Texture2D image1 = LoadTexture("./images/castelo.png");
+            Texture2D image2 = LoadTexture("./images/AAAAAAAAAAAAAAAAAAA.png");
+            Transition(image2, image1, 2.0f);
             DrawText("VITÓRIA!", screenWidth / 2 - 100, screenHeight / 2, 30, GREEN);
             //TODO: Animação de Vitória
             EndDrawing();
