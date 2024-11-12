@@ -388,6 +388,13 @@ int GameLoop(void) {
     };
     jumpAnim.frameWidth = (float)(jumpAnim.texture.width / 10);
     jumpAnim.maxFrames = 10;
+    
+    Animation enemyAnim = {
+        LoadTexture("./assets/wolfsheet2.png"),
+        0, 0, 0, 0.0f, false
+    };
+    enemyAnim.frameWidth = (float)(enemyAnim.texture.width / 5);
+    enemyAnim.maxFrames = 5;
 
     while (!WindowShouldClose()) {
         UpdateMusicStream(lvlMusic);
@@ -478,6 +485,15 @@ int GameLoop(void) {
                 currentAnim->currentFrame = 0;
             }
         }
+        
+        enemyAnim.frameTimer += GetFrameTime();
+        if (enemyAnim.frameTimer >= FRAME_SPEED) {
+            enemyAnim.frameTimer = 0.0f;
+            enemyAnim.currentFrame++;
+            if (enemyAnim.currentFrame >= enemyAnim.maxFrames) {
+                enemyAnim.currentFrame = 0;
+            }
+        }
 
         playerSpeed.y += GRAVITY * GetFrameTime();
         player.y += playerSpeed.y * GetFrameTime();
@@ -516,6 +532,12 @@ int GameLoop(void) {
             
             if(player.x < 0) player.x = 0;
             if(player.x > screenWidth - player.width) player.x = screenWidth - player.width;
+            
+            if(salaAtual->enemy.x < player.x){
+                enemyAnim.flipped = true;
+            }else{
+                enemyAnim.flipped = false;
+            }
             
             if (salaAtual->id == 5) {
                 if(IsMusicStreamPlaying(music)){
@@ -645,10 +667,36 @@ int GameLoop(void) {
         // DrawRectangleRec(player, (Color){0, 0, 255, 128}); // Semi-transparent blue hitbox FOR DEBUGGIN/TESTING ONLY
         // DrawRectangleRec(destRec, (Color){255, 0, 0, 128}); // Semi-transparent red sprite bounds FOR DEBUGGIN/TESTING ONLY
         
+        DrawRectangleRec(salaAtual->enemy, (Color){255, 0, 0, 128});
+        
         Vector2 origin = {0, 0};
         DrawTexturePro(currentAnim->texture, sourceRec, destRec, origin, 0.0f, WHITE);
         
-        if (salaAtual->enemyAlive) DrawRectangleRec(salaAtual->enemy, RED);
+        float desiredEnemyHeight = 50.0f;
+        float enemyScale = desiredEnemyHeight / (float)enemyAnim.texture.height;
+        
+        if (salaAtual->enemyAlive) {
+            Rectangle enemySourceRec = {
+                enemyAnim.frameWidth * enemyAnim.currentFrame,
+                0,
+                enemyAnim.flipped ? -enemyAnim.frameWidth : enemyAnim.frameWidth,
+                (float)enemyAnim.texture.height
+            };
+            Rectangle enemyDestRec = {
+                salaAtual->enemy.x,
+                salaAtual->enemy.y - (enemyAnim.texture.height - salaAtual->enemy.height), // Adjusted Y position
+                enemyAnim.frameWidth * enemyScale,            // Scaled width
+                (float)enemyAnim.texture.height * enemyScale // Scaled height
+            };
+            Rectangle enemyHitbox = {
+                salaAtual->enemy.x,
+                salaAtual->enemy.y,
+                salaAtual->enemy.width * enemyScale,    // Scaled hitbox width
+                salaAtual->enemy.height * enemyScale    // Scaled hitbox height
+            };
+            DrawTexturePro(enemyAnim.texture, enemySourceRec, enemyDestRec, (Vector2){0, 0}, 0.0f, WHITE);
+        }
+
         for (int i = 0; i < MAX_BULLETS; i++) if (bullets[i].active) DrawRectangleRec(bullets[i].rect, BLACK);
         for (int i = 0; i < MAX_ENEMY_BULLETS; i++) if (salaAtual->enemyBullets[i].active) DrawRectangleRec(salaAtual->enemyBullets[i].rect, WHITE);
         
@@ -666,6 +714,7 @@ int GameLoop(void) {
     UnloadTexture(idleAnim.texture);
     UnloadTexture(walkAnim.texture);
     UnloadTexture(jumpAnim.texture);
+    UnloadTexture(enemyAnim.texture);
     
     liberaSalas(sala1);
     UnloadSound(enemyMage);
