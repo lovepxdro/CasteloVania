@@ -158,11 +158,17 @@ GameScreen Menu(void) {
     int numRanking = contScore(ranking);
     const char *menuOptions[MAX_OPTIONS] = { "Iniciar", "Instruções", "Ranking", "Sair" };
     
+    InitAudioDevice();
+    Music menuMusic = LoadMusicStream("./sounds/MusicMenu.mp3");
+    SetMusicVolume(menuMusic, 0.5f);
+    PlayMusicStream(menuMusic);
+    
     Color semiTransparent = (Color){255, 255, 255, 128};
     
     Texture2D menuBackground = LoadTexture("./images/AAAAAAAAAAAAAAAAAAA.png");
 
     while (!WindowShouldClose()) {
+        UpdateMusicStream(menuMusic);
         // Controle de navegação no menu
         if (IsKeyPressed(KEY_DOWN)) selectedOption = (selectedOption + 1) % MAX_OPTIONS;
         if (IsKeyPressed(KEY_UP)) selectedOption = (selectedOption - 1 + MAX_OPTIONS) % MAX_OPTIONS;
