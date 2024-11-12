@@ -1,0 +1,9 @@
+<<<<<<< HEAD
+=======
+IP 240
+BEPIS 237
+PAPA 180
+FORMIGA 0
+A 0
+PINGAS 0
+>>>>>>> 02de366334df50356c41ba48993aa37d38f89c8f
