@@ -284,6 +284,8 @@ void GetPlayerName(){
 
 int GameLoop(void) {
     InitAudioDevice();
+    Music lvlMusic;
+    Music musicBoss = LoadMusicStream("./music/Castlevania (NES)_ Black Night (Extended) [ ezmp3.cc ].mp3");
     Music music = LoadMusicStream("./music/Castlevania (NES)_ Wicked Child (Extended) [ ezmp3.cc ].mp3");
     Sound enemyMage = LoadSound("./sounds/Retro Event 19.wav");
     Sound enemyHowl = LoadSound("./sounds/Retro Wolf B 02.wav");
@@ -292,7 +294,7 @@ int GameLoop(void) {
     const int screenWidth = 800;
     const int screenHeight = 450;
     InitWindow(screenWidth, screenHeight, "CasteloVania");
-
+    
     Sala* sala1 = criaSala(1);
     Sala* sala2 = criaSala(2);
     Sala* sala3 = criaSala(3);
@@ -325,11 +327,13 @@ int GameLoop(void) {
     double countdownTime = 120.0;
     
     PlayMusicStream(music);
+    
+    lvlMusic = music;
 
     while (!WindowShouldClose()) {
-        UpdateMusicStream(music);
+        UpdateMusicStream(lvlMusic);
         if (playerLife <= 0) {
-        StopMusicStream(music);
+        StopMusicStream(lvlMusic);
         ClearBackground(RAYWHITE);
         BeginDrawing();
         
@@ -346,7 +350,7 @@ int GameLoop(void) {
         // countdownTime -= 5;
 
          if (countdownTime <= 0) {
-            StopMusicStream(music);
+            StopMusicStream(lvlMusic);
             ClearBackground(RAYWHITE);
             BeginDrawing();
 
@@ -360,7 +364,7 @@ int GameLoop(void) {
         }
         
         if (salaAtual->enemyAlive == false && salaAtual == sala5){
-            StopMusicStream(music);
+            StopMusicStream(lvlMusic);
             ClearBackground(RAYWHITE);
             BeginDrawing();
             DrawText("VITÓRIA!", screenWidth / 2 - 100, screenHeight / 2, 30, GREEN);
@@ -417,6 +421,11 @@ int GameLoop(void) {
             if(player.x > screenWidth - player.width) player.x = screenWidth - player.width;
             
             if (salaAtual->id == 5) {
+                if(IsMusicStreamPlaying(music)){
+                    StopMusicStream(lvlMusic);
+                    lvlMusic = musicBoss;
+                    PlayMusicStream(lvlMusic);
+                }
                 if (movingRight) {
                     salaAtual->enemy.x += BOSS_SPEED * GetFrameTime();
                     if (salaAtual->enemy.x + salaAtual->enemy.width >= screenWidth) movingRight = false;
@@ -535,6 +544,7 @@ int GameLoop(void) {
     UnloadSound(enemyMage);
     UnloadSound(enemyHowl);
     UnloadSound(playerShoot);
+    UnloadMusicStream(musicBoss);
     UnloadMusicStream(music);
     CloseAudioDevice();
     
