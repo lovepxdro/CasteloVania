@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <string.h>
 
+#define VOLUME 0.5f
 #define MAX_OPTIONS 4
 #define GRAVITY 500.0f
 #define JUMP_FORCE -300.0f
@@ -159,7 +160,7 @@ GameScreen Menu(void) {
     
     Color semiTransparent = (Color){255, 255, 255, 128};
     
-    Texture2D menuBackground = LoadTexture("./imagens/AAAAAAAAAAAAAAAAAAA.png");
+    Texture2D menuBackground = LoadTexture("./images/AAAAAAAAAAAAAAAAAAA.png");
 
     while (!WindowShouldClose()) {
         // Controle de navegação no menu
@@ -225,11 +226,11 @@ Sala* criaSala(int id) {
 
     if (id == 5) {  // Última sala (boss)
         sala->enemyAlive = true;
-        sala->background = LoadTexture("./imagens/scenesample.gif");
+        sala->background = LoadTexture("./images/scenesample.gif");
         sala->enemy = (Rectangle){0, sala->ceiling.y + sala->ceiling.height, 50, 50}; // Posição inicial perto do teto
         sala->enemyLife = 130;
     } else {
-        sala->background = LoadTexture("./imagens/8d830da54b4e5a98f5734a62fcae4be1ebc505db_2_1035x582.gif");
+        sala->background = LoadTexture("./images/8d830da54b4e5a98f5734a62fcae4be1ebc505db_2_1035x582.gif");
         if(id>1){
             sala->enemyAlive = true;
             sala->enemy = (Rectangle){600, 450 - 100, 50, 50}; // Inimigo no chão
@@ -282,6 +283,10 @@ void GetPlayerName(){
 }
 
 int GameLoop(void) {
+    InitAudioDevice();
+    Sound enemyHowl = LoadSound("./sounds/Retro Wolf B 02.wav");
+    Sound playerShoot = LoadSound("./sounds/Retro Gun SingleShot 04.mp3");
+    SetSoundVolume(playerShoot, VOLUME);
     const int screenWidth = 800;
     const int screenHeight = 450;
     InitWindow(screenWidth, screenHeight, "CasteloVania");
@@ -373,11 +378,15 @@ int GameLoop(void) {
             isGrounded = true;
         }
         
-        if(salaAtual->enemyAlive != true){
+        if(salaAtual->enemyAlive == false){
             if (player.x + player.width > screenWidth) {
                 if (salaAtual->direita) {
                     salaAtual = salaAtual->direita;
+                    if((salaAtual->enemyAlive == true) && (salaAtual != sala5)){
+                        PlaySound(enemyHowl);
+                    }
                     player.x = 0;
+                    
                 } else {
                     player.x = screenWidth - player.width;
                 }
@@ -444,6 +453,7 @@ int GameLoop(void) {
         }
 
         if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_UP)) {
+            PlaySound(playerShoot);
             for (int i = 0; i < MAX_BULLETS; i++) {
                 if (!bullets[i].active) {
                     bullets[i].rect.x = player.x + player.width / 2;
@@ -511,6 +521,9 @@ int GameLoop(void) {
     GetPlayerName();
     
     liberaSalas(sala1);
+    UnloadSound(enemyHowl);
+    UnloadSound(playerShoot);
+    CloseAudioDevice();
     
     return score;
     
