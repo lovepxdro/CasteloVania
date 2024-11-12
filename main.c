@@ -284,6 +284,7 @@ void GetPlayerName(){
 
 int GameLoop(void) {
     InitAudioDevice();
+    Sound enemyMage = LoadSound("./sounds/Retro Event 19.wav");
     Sound enemyHowl = LoadSound("./sounds/Retro Wolf B 02.wav");
     Sound playerShoot = LoadSound("./sounds/Retro Gun SingleShot 04.mp3");
     SetSoundVolume(playerShoot, VOLUME);
@@ -356,6 +357,7 @@ int GameLoop(void) {
             ClearBackground(RAYWHITE);
             BeginDrawing();
             DrawText("VITÓRIA!", screenWidth / 2 - 100, screenHeight / 2, 30, GREEN);
+            //TODO: Animação de Vitória
             EndDrawing();
             sleep(3);
             break;
@@ -384,6 +386,8 @@ int GameLoop(void) {
                     salaAtual = salaAtual->direita;
                     if((salaAtual->enemyAlive == true) && (salaAtual != sala5)){
                         PlaySound(enemyHowl);
+                    }else if((salaAtual->enemyAlive == true) && (salaAtual == sala5)){
+                        PlaySound(enemyMage);
                     }
                     player.x = 0;
                     
@@ -521,6 +525,7 @@ int GameLoop(void) {
     GetPlayerName();
     
     liberaSalas(sala1);
+    UnloadSound(enemyMage);
     UnloadSound(enemyHowl);
     UnloadSound(playerShoot);
     CloseAudioDevice();
@@ -535,7 +540,9 @@ int main(void) {
     InitWindow(screenWidth, screenHeight, "CasteloVania");
 
     SetTargetFPS(60);
-
+    
+    //TODO: Animação de Entrada
+    
     GameScreen currentScreen = MENU;
     while (currentScreen == MENU) {
         currentScreen = Menu();
