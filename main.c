@@ -301,6 +301,8 @@ int GameLoop(void) {
     Music lvlMusic;
     Music musicBoss = LoadMusicStream("./music/Castlevania (NES)_ Black Night (Extended) [ ezmp3.cc ].mp3");
     Music music = LoadMusicStream("./music/Castlevania (NES)_ Wicked Child (Extended) [ ezmp3.cc ].mp3");
+    Sound victory = LoadSound("./sounds/Stage Clear - Castlevania (NES) OST [ ezmp3.cc ].mp3");
+    Sound defeat = LoadSound("./sounds/Castlevania (NES)_ Death [ ezmp3.cc ].mp3");
     Sound enemyMage = LoadSound("./sounds/Retro Event 19.wav");
     Sound enemyHowl = LoadSound("./sounds/Retro Wolf B 02.wav");
     Sound playerShoot = LoadSound("./sounds/Retro Gun SingleShot 04.mp3");
@@ -346,8 +348,10 @@ int GameLoop(void) {
 
     while (!WindowShouldClose()) {
         UpdateMusicStream(lvlMusic);
+        
         if (playerLife <= 0) {
         StopMusicStream(lvlMusic);
+        PlaySound(defeat);
         ClearBackground(RAYWHITE);
         BeginDrawing();
         
@@ -365,6 +369,7 @@ int GameLoop(void) {
 
          if (countdownTime <= 0) {
             StopMusicStream(lvlMusic);
+            PlaySound(defeat);
             ClearBackground(RAYWHITE);
             BeginDrawing();
 
@@ -379,6 +384,7 @@ int GameLoop(void) {
         
         if (salaAtual->enemyAlive == false && salaAtual == sala5){
             StopMusicStream(lvlMusic);
+            PlaySound(victory);
             ClearBackground(RAYWHITE);
             BeginDrawing();
             DrawText("VITÓRIA!", screenWidth / 2 - 100, screenHeight / 2, 30, GREEN);
@@ -558,6 +564,8 @@ int GameLoop(void) {
     UnloadSound(enemyMage);
     UnloadSound(enemyHowl);
     UnloadSound(playerShoot);
+    UnloadSound(victory);
+    UnloadSound(defeat);
     UnloadMusicStream(musicBoss);
     UnloadMusicStream(music);
     CloseAudioDevice();
