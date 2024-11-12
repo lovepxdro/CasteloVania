@@ -17,6 +17,23 @@
 #define MAX_SCORE 10
 #define MAX_BULLETS 10
 #define MAX_ENEMY_BULLETS 100
+#define ANIMATION_FPS 12.0f
+#define FRAME_SPEED (1.0f / ANIMATION_FPS)
+
+typedef enum {
+    ANIM_IDLE,
+    ANIM_WALKING,
+    ANIM_JUMPING
+} AnimationState;
+    
+typedef struct {
+    Texture2D texture;     // Sprite sheet texture
+    float frameWidth;      // Width of each frame
+    int maxFrames;         // Total number of frames
+    int currentFrame;      // Current frame being displayed
+    float frameTimer;      // Timer for frame updates
+    bool flipped;          // Direction the sprite is facing
+} Animation;
 
 typedef enum {
     MENU = 0,   
@@ -296,6 +313,9 @@ void GetPlayerName(){
     }
 }
 
+Animation * currentAnim = NULL;
+AnimationState currentState = ANIM_IDLE;
+
 int GameLoop(void) {
     InitAudioDevice();
     Music lvlMusic;
@@ -327,7 +347,7 @@ int GameLoop(void) {
 
     Sala* salaAtual = sala1;
 
-    Rectangle player = {100, screenHeight - 100, 50, 50};
+    Rectangle player = {100, screenHeight - 150, 60, 90}; // Hitbox
     Vector2 playerSpeed = {0, 0};
     int enemyDiedCount = 0;
     int score;
@@ -345,6 +365,29 @@ int GameLoop(void) {
     PlayMusicStream(music);
     
     lvlMusic = music;
+    
+    Animation idleAnim = {
+        LoadTexture("./assets/Character/Idle.png"),
+        0, 0, 0, 0.0f, false
+    };
+    idleAnim.frameWidth = (float)(idleAnim.texture.width / 6);
+    idleAnim.maxFrames = 6;
+    
+    currentAnim = &idleAnim;
+
+    Animation walkAnim = {
+        LoadTexture("./assets/Character/Walk.png"),
+        0, 0, 0, 0.0f, false
+    };
+    walkAnim.frameWidth = (float)(walkAnim.texture.width / 10);
+    walkAnim.maxFrames = 10;
+
+    Animation jumpAnim = {
+        LoadTexture("./assets/Character/Jump.png"),
+        0, 0, 0, 0.0f, false
+    };
+    jumpAnim.frameWidth = (float)(jumpAnim.texture.width / 10);
+    jumpAnim.maxFrames = 10;
 
     while (!WindowShouldClose()) {
         UpdateMusicStream(lvlMusic);
@@ -393,13 +436,47 @@ int GameLoop(void) {
             sleep(3);
             break;
         }
+        
+        AnimationState newState = ANIM_IDLE;
+        
+        if (!isGrounded) {
+            newState = ANIM_JUMPING;
+            currentAnim = &jumpAnim;
+        } else if (IsKeyDown(KEY_D) || IsKeyDown(KEY_A)) {
+            newState = ANIM_WALKING;
+            currentAnim = &walkAnim;
+        } else {
+            newState = ANIM_IDLE;
+            currentAnim = &idleAnim;
+        }
 
-        if (IsKeyDown(KEY_D)) player.x += PLAYER_SPEED * GetFrameTime();
-        if (IsKeyDown(KEY_A)) player.x -= PLAYER_SPEED * GetFrameTime();
+        if (IsKeyDown(KEY_D)){
+            player.x += PLAYER_SPEED * GetFrameTime();
+            currentAnim->flipped = false;
+        }
+        if (IsKeyDown(KEY_A)){ 
+            player.x -= PLAYER_SPEED * GetFrameTime();
+            currentAnim->flipped = true;
+        }
 
         if (IsKeyPressed(KEY_W) && isGrounded) {
             playerSpeed.y = JUMP_FORCE;
             isGrounded = false;
+        }
+        
+        if (newState != currentState) {
+            currentState = newState;
+            currentAnim->currentFrame = 0;
+            currentAnim->frameTimer = 0.0f;
+        }
+        
+        currentAnim->frameTimer += GetFrameTime();
+        if (currentAnim->frameTimer >= FRAME_SPEED) {
+            currentAnim->frameTimer = 0.0f;
+            currentAnim->currentFrame++;
+            if (currentAnim->currentFrame >= currentAnim->maxFrames) {
+                currentAnim->currentFrame = 0;
+            }
         }
 
         playerSpeed.y += GRAVITY * GetFrameTime();
@@ -544,7 +621,33 @@ int GameLoop(void) {
         }
         
         DrawRectangleLines(0, 450 - 50, 800, 50, DARKGRAY);
-        DrawRectangleRec(player, BLUE);
+        //DrawRectangleRec(player, BLUE);
+        
+        Rectangle sourceRec = {
+            currentAnim->frameWidth * currentAnim->currentFrame,
+            0,
+            currentAnim->flipped ? -currentAnim->frameWidth : currentAnim->frameWidth,
+            (float)currentAnim->texture.height
+        };
+        
+        float spriteHeight = (float)currentAnim->texture.height;
+        float spriteWidth = currentAnim->frameWidth;
+        float desiredHeight = 150.0f; // Adjust this value to make sprite bigger
+        float scale = desiredHeight / spriteHeight;
+        
+        Rectangle destRec = {
+            player.x - ((spriteWidth * scale - player.width) / 2), // Center horizontally
+            player.y - (desiredHeight - player.height),            // Adjust vertical position
+            spriteWidth * scale,                                   // Scaled width
+            spriteHeight * scale                                   // Scaled height
+        };
+        
+        // DrawRectangleRec(player, (Color){0, 0, 255, 128}); // Semi-transparent blue hitbox FOR DEBUGGIN/TESTING ONLY
+        // DrawRectangleRec(destRec, (Color){255, 0, 0, 128}); // Semi-transparent red sprite bounds FOR DEBUGGIN/TESTING ONLY
+        
+        Vector2 origin = {0, 0};
+        DrawTexturePro(currentAnim->texture, sourceRec, destRec, origin, 0.0f, WHITE);
+        
         if (salaAtual->enemyAlive) DrawRectangleRec(salaAtual->enemy, RED);
         for (int i = 0; i < MAX_BULLETS; i++) if (bullets[i].active) DrawRectangleRec(bullets[i].rect, BLACK);
         for (int i = 0; i < MAX_ENEMY_BULLETS; i++) if (salaAtual->enemyBullets[i].active) DrawRectangleRec(salaAtual->enemyBullets[i].rect, WHITE);
@@ -559,6 +662,10 @@ int GameLoop(void) {
     
     score = enemyDiedCount * (int)countdownTime;
     GetPlayerName();
+    
+    UnloadTexture(idleAnim.texture);
+    UnloadTexture(walkAnim.texture);
+    UnloadTexture(jumpAnim.texture);
     
     liberaSalas(sala1);
     UnloadSound(enemyMage);
