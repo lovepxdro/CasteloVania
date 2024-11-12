@@ -4,6 +4,7 @@
 #include <math.h>
 #include <time.h>
 #include <unistd.h>
+#include <string.h>
 
 #define MAX_OPTIONS 4
 #define GRAVITY 500.0f
@@ -52,10 +53,10 @@ int charIndex = 0;
 PlayerScore ranking[MAX_SCORE];
 
 void saveScore(const char *name, int score) {
-    if(name == NULL){
+    if (name == NULL) {
         return;
     }
-    
+
     // Open file for reading
     FILE *file = fopen("Ranking.txt", "r");
     if (!file) {
@@ -90,6 +91,18 @@ void saveScore(const char *name, int score) {
         currentCount++;
     }
 
+    // Order ranking with Bubble sort
+    for (int i = 0; i < currentCount - 1; i++) {
+        for (int j = 0; j < currentCount - 1 - i; j++) {
+            if (scores[j].score < scores[j + 1].score) {
+                // Switch positions
+                PlayerScore temp = scores[j];
+                scores[j] = scores[j + 1];
+                scores[j + 1] = temp;
+            }
+        }
+    }
+
     // Rewrite the file with updated scores
     file = fopen("Ranking.txt", "w");
     if (!file) {
@@ -97,8 +110,8 @@ void saveScore(const char *name, int score) {
         return;
     }
 
-    for (int i = 0; i < currentCount; i++) {
-        if(strcmp(scores[i].name, "") == 0 || strcmp(scores[i].name, " ") == 0){
+    for (int i = 0; i < currentCount && i < MAX_SCORE; i++) {
+        if (strcmp(scores[i].name, "") == 0 || strcmp(scores[i].name, " ") == 0) {
             break;
         }
         fprintf(file, "%s %d\n", scores[i].name, (int)scores[i].score);
@@ -106,6 +119,7 @@ void saveScore(const char *name, int score) {
     }
     fclose(file);
 }
+
 
 int contScore(PlayerScore *ranking) {
     FILE *file = fopen("Ranking.txt", "r");  // Open in read mode
@@ -115,12 +129,26 @@ int contScore(PlayerScore *ranking) {
     }
 
     int cont = 0;
-    while (cont < 10 && fscanf(file, "%50s %d", ranking[cont].name, &ranking[cont].score) == 2) {
+    while (cont < MAX_SCORE && fscanf(file, "%50s %d", ranking[cont].name, &ranking[cont].score) == 2) {
         cont++;
     }
     fclose(file);
+
+    // Order using bubble sort
+    for (int i = 0; i < cont - 1; i++) {
+        for (int j = 0; j < cont - 1 - i; j++) {
+            if (ranking[j].score < ranking[j + 1].score) {
+                // Switch positions
+                PlayerScore temp = ranking[j];
+                ranking[j] = ranking[j + 1];
+                ranking[j + 1] = temp;
+            }
+        }
+    }
+
     return cont;
 }
+
 
 GameScreen Menu(void) {
     const int screenWidth = 800;
