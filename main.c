@@ -27,12 +27,12 @@ typedef enum {
 } AnimationState;
     
 typedef struct {
-    Texture2D texture;     // Sprite sheet texture
-    float frameWidth;      // Width of each frame
-    int maxFrames;         // Total number of frames
-    int currentFrame;      // Current frame being displayed
-    float frameTimer;      // Timer for frame updates
-    bool flipped;          // Direction the sprite is facing
+    Texture2D texture;    
+    float frameWidth;     
+    int maxFrames;        
+    int currentFrame;     
+    float frameTimer;     
+    bool flipped;         
 } Animation;
 
 typedef enum {
@@ -53,10 +53,10 @@ typedef struct Bullet {
     bool active;
 } Bullet;
 
-typedef struct Sala {
+typedef struct Room {
     int id;
-    struct Sala* esquerda;
-    struct Sala* direita;
+    struct Room* left;
+    struct Room* right;
     Texture2D background;
     Rectangle floor;
     Rectangle ceiling;
@@ -64,7 +64,7 @@ typedef struct Sala {
     bool enemyAlive;
     int enemyLife;
     Bullet enemyBullets[MAX_ENEMY_BULLETS];
-} Sala;
+} Room;
 
 char playerName[51] = "";
 int charIndex = 0;
@@ -75,7 +75,6 @@ void saveScore(const char *name, int score) {
         return;
     }
 
-    // Open file for reading
     FILE *file = fopen("Ranking.txt", "r");
     if (!file) {
         printf("Oh no\n");
@@ -86,15 +85,12 @@ void saveScore(const char *name, int score) {
     bool nameExists = false;
     int currentCount = 0;
 
-    // Temporary list to hold scores for rewriting
     PlayerScore scores[MAX_SCORE];
 
-    // Read scores from file and check if the name exists
     while (fscanf(file, "%50s %d", temp.name, &temp.score) == 2) {
         scores[currentCount++] = temp;
         if (strcmp(temp.name, name) == 0) {
             nameExists = true;
-            // Update score if the new one is higher
             if (score > temp.score) {
                 scores[currentCount - 1].score = score;
             }
@@ -102,18 +98,15 @@ void saveScore(const char *name, int score) {
     }
     fclose(file);
 
-    // If the name doesn’t exist, add it to the list
     if (!nameExists) {
         strcpy(scores[currentCount].name, name);
         scores[currentCount].score = score;
         currentCount++;
     }
 
-    // Order ranking with Bubble sort
     for (int i = 0; i < currentCount - 1; i++) {
         for (int j = 0; j < currentCount - 1 - i; j++) {
             if (scores[j].score < scores[j + 1].score) {
-                // Switch positions
                 PlayerScore temp = scores[j];
                 scores[j] = scores[j + 1];
                 scores[j + 1] = temp;
@@ -121,7 +114,6 @@ void saveScore(const char *name, int score) {
         }
     }
 
-    // Rewrite the file with updated scores
     file = fopen("Ranking.txt", "w");
     if (!file) {
         printf(":(\n");
@@ -133,14 +125,14 @@ void saveScore(const char *name, int score) {
             break;
         }
         fprintf(file, "%s %d\n", scores[i].name, (int)scores[i].score);
-        printf("Saving %s %d to file\n", scores[i].name, (int)scores[i].score);  // Debugging print
+        printf("Saving %s %d to file\n", scores[i].name, (int)scores[i].score);
     }
     fclose(file);
 }
 
 
 int contScore(PlayerScore *ranking) {
-    FILE *file = fopen("Ranking.txt", "r");  // Open in read mode
+    FILE *file = fopen("Ranking.txt", "r");
     if (!file) {
         printf("Oh oh\n");
         return 0;
@@ -152,11 +144,9 @@ int contScore(PlayerScore *ranking) {
     }
     fclose(file);
 
-    // Order using bubble sort
     for (int i = 0; i < cont - 1; i++) {
         for (int j = 0; j < cont - 1 - i; j++) {
             if (ranking[j].score < ranking[j + 1].score) {
-                // Switch positions
                 PlayerScore temp = ranking[j];
                 ranking[j] = ranking[j + 1];
                 ranking[j + 1] = temp;
@@ -167,8 +157,48 @@ int contScore(PlayerScore *ranking) {
     return cont;
 }
 
+void Transition(Texture2D image1, Texture2D image2, float delayTime) {
+    float alpha = 0.0f;
+    bool transitioning = false;
+    float timer = 0.0f;
+
+    while (!WindowShouldClose()) {
+        if (!transitioning) {
+            timer += GetFrameTime();
+            if (timer >= delayTime) {
+                transitioning = true;
+            }
+        }
+
+        if (transitioning) {
+            alpha += 0.01f;
+            if (alpha >= 1.0f) {
+                alpha = 1.0f;
+                break;
+            }
+        }
+
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+
+        DrawTexture(image1, 0, 0, WHITE);
+        DrawTexture(image2, 0, 0, Fade(WHITE, alpha));
+
+        EndDrawing();
+    }
+}
+
+
 GameScreen Menu(void) {
     InitAudioDevice();
+    
+    Texture2D image1 = LoadTexture("./images/castelo.png");
+    Texture2D image2 = LoadTexture("./images/AAAAAAAAAAAAAAAAAAA.png");
+    Transition(image1, image2, 2.0f);
+
+    UnloadTexture(image1);
+    UnloadTexture(image2);
+    
     Music menuMusic = LoadMusicStream("./music/Castlevania (NES) Music - Boss Battle Poison Mind.mp3");
     SetMusicVolume(menuMusic, 0.5f);
     PlayMusicStream(menuMusic);
@@ -184,54 +214,47 @@ GameScreen Menu(void) {
     
     while (!WindowShouldClose()) {
         UpdateMusicStream(menuMusic);
-        // Controle de navegação no menu
         if (IsKeyPressed(KEY_DOWN)) selectedOption = (selectedOption + 1) % MAX_OPTIONS;
         if (IsKeyPressed(KEY_UP)) selectedOption = (selectedOption - 1 + MAX_OPTIONS) % MAX_OPTIONS;
 
-        // Verifica se a opção foi selecionada com Enter
         if (IsKeyPressed(KEY_ENTER)) {
             if (selectedOption == 0) {
-                StopMusicStream(menuMusic);  // Para a música antes de iniciar o jogo
-                UnloadMusicStream(menuMusic); // Descarrega o stream de música do menu
+                StopMusicStream(menuMusic);
+                UnloadMusicStream(menuMusic);
                 UnloadTexture(menuBackground);
                 CloseAudioDevice();
-                return JOGO;  // Selecionou "Iniciar", encerra o menu e inicia o jogo
+                return JOGO;
             } else if (selectedOption == 3) {
-                StopMusicStream(menuMusic);  // Para a música antes de iniciar o jogo
-                UnloadMusicStream(menuMusic); // Descarrega o stream de música do menu
+                StopMusicStream(menuMusic);
+                UnloadMusicStream(menuMusic);
                 UnloadTexture(menuBackground);
                 CloseAudioDevice();
-                return SAIR;  // Selecionou "Sair", encerra o programa
+                return SAIR;
             }
         }
 
-        // Desenho do menu dividido
         BeginDrawing();
             ClearBackground(RAYWHITE);
             
             DrawTexture(menuBackground, 0, 0, WHITE);
 
-            // Divisão da tela
             DrawRectangle(0, 0, screenWidth / 2, screenHeight, semiTransparent);
             DrawRectangle(screenWidth / 2, 0, screenWidth / 2, screenHeight, semiTransparent);
 
-            // Exibe o título do menu
             DrawText("Menu Principal", screenWidth / 4 - MeasureText("Menu Principal", 30) / 2, 50, 30, DARKBLUE);
 
-            // Exibe as opções do menu na área esquerda
             for (int i = 0; i < MAX_OPTIONS; i++) {
                 Color color = (i == selectedOption) ? RED : BLACK;
                 DrawText(menuOptions[i], screenWidth / 4 - MeasureText(menuOptions[i], 20) / 2, 150 + i * 40, 20, color);
             }
 
-            // Exibe informações na área direita automaticamente para "Instruções" e "Ranking"
-            if (selectedOption == 1) {  // Instruções
+            if (selectedOption == 1) {
                 DrawText("Instruções", screenWidth * 3 / 4 - MeasureText("Instruções", 30) / 2, 50, 30, DARKBLUE);
                 DrawText("Use W-A-D para movimentar o personagem.", screenWidth / 2 + 20, 150, 17, BLACK);
                 DrawText("Use as setas para disparar.", screenWidth / 2 + 20, 190, 17, BLACK);
                 DrawText("Aperte ESC para parar de jogar.", screenWidth / 2 + 20, 230, 17, BLACK);
-            } else if (selectedOption == 2) {  // Ranking
-                DrawText("Ranking", screenWidth * 3 / 4 - MeasureText("Ranking", 30) / 2, 50, 30, BLACK);
+            } else if (selectedOption == 2) {
+                DrawText("Ranking", screenWidth * 3 / 4 - MeasureText("Ranking", 30) / 2, 50, 30, DARKBLUE);
                 DrawText("Top 10 melhores pontuações!", screenWidth / 2 + 20, 130, 17, BLACK);
                 for(int i = 0; i < numRanking; i++){
                     char text[100];
@@ -247,42 +270,41 @@ GameScreen Menu(void) {
     return SAIR;
 }
 
-Sala* criaSala(int id) {
-    Sala* sala = (Sala*)malloc(sizeof(Sala));
-    sala->id = id;
-    sala->esquerda = NULL;
-    sala->direita = NULL;
-    sala->floor = (Rectangle){0, 450 - 50, 800, 50};
-    sala->ceiling = (Rectangle){0, 0, 800, 50}; // Teto
+Room* createRoom(int id) {
+    Room* room = (Room*)malloc(sizeof(Room));
+    room->id = id;
+    room->left = NULL;
+    room->right = NULL;
+    room->floor = (Rectangle){0, 450 - 50, 800, 50};
+    room->ceiling = (Rectangle){0, 0, 800, 50};
 
-    if (id == 5) {  // Última sala (boss)
-        sala->enemyAlive = true;
-        sala->background = LoadTexture("./images/scenesample.gif");
-        sala->enemy = (Rectangle){0, sala->ceiling.y + sala->ceiling.height, 50, 50}; // Posição inicial perto do teto
-        sala->enemyLife = 130;
+    if (id == 5) {
+        room->enemyAlive = true;
+        room->background = LoadTexture("./images/scenesample.gif");
+        room->enemy = (Rectangle){0, room->ceiling.y + room->ceiling.height, 50, 50};
+        room->enemyLife = 130;
     } else {
-        sala->background = LoadTexture("./images/8d830da54b4e5a98f5734a62fcae4be1ebc505db_2_1035x582.gif");
+        room->background = LoadTexture("./images/8d830da54b4e5a98f5734a62fcae4be1ebc505db_2_1035x582.gif");
         if(id>1){
-            sala->enemyAlive = true;
-            sala->enemy = (Rectangle){600, 450 - 100, 50, 50}; // Inimigo no chão
-            sala->enemyLife = 30;
+            room->enemyAlive = true;
+            room->enemy = (Rectangle){600, 450 - 100, 50, 50};
+            room->enemyLife = 30;
         }else if(id == 1){
-            sala->enemyAlive = false;
+            room->enemyAlive = false;
         }
     }
 
-    // Inicializa os projéteis do inimigo
     for (int i = 0; i < MAX_ENEMY_BULLETS; i++) {
-        sala->enemyBullets[i].active = false;
+        room->enemyBullets[i].active = false;
     }
-    return sala;
+    return room;
 }
 
-void liberaSalas(Sala* sala) {
-    while (sala) {
-        Sala* prox = sala->direita;
-        free(sala);
-        sala = prox;
+void freeRoom(Room* room) {
+    while (room) {
+        Room* next = room->right;
+        free(room);
+        room = next;
     }
 }
 
@@ -292,10 +314,10 @@ void GetPlayerName(){
     
     while(!WindowShouldClose()){
         BeginDrawing();
-        ClearBackground(RAYWHITE);
+        ClearBackground(BLACK);
         
         DrawText("Coloque o seu nome:", screenWidth / 2 - MeasureText("Coloque o seu nome:", 20) / 2, screenHeight / 2 - 50, 20, DARKBLUE);
-        DrawText(playerName, screenWidth / 2 - MeasureText(playerName, 20) / 2, screenHeight / 2, 20, BLACK);
+        DrawText(playerName, screenWidth / 2 - MeasureText(playerName, 20) / 2, screenHeight / 2, 20, WHITE);
         
         EndDrawing();
         
@@ -331,28 +353,29 @@ int GameLoop(void) {
     const int screenHeight = 450;
     InitWindow(screenWidth, screenHeight, "CasteloVania");
     
-    Sala* sala1 = criaSala(1);
-    Sala* sala2 = criaSala(2);
-    Sala* sala3 = criaSala(3);
-    Sala* sala4 = criaSala(4);
-    Sala* sala5 = criaSala(5);
-    sala1->direita = sala2;
-    sala2->esquerda = sala1;
-    sala2->direita = sala3;
-    sala3->esquerda = sala2;
-    sala3->direita = sala4;
-    sala4->esquerda = sala3;
-    sala4->direita = sala5;
-    sala5->esquerda = sala4;
+    Room* room1 = createRoom(1);
+    Room* room2 = createRoom(2);
+    Room* room3 = createRoom(3);
+    Room* room4 = createRoom(4);
+    Room* room5 = createRoom(5);
+    room1->right = room2;
+    room2->left = room1;
+    room2->right = room3;
+    room3->left = room2;
+    room3->right = room4;
+    room4->left = room3;
+    room4->right = room5;
+    room5->left = room4;
 
-    Sala* salaAtual = sala1;
+    Room* currentRoom = room1;
 
-    Rectangle player = {100, screenHeight - 150, 60, 90}; // Hitbox
+
+    Rectangle player = {100, screenHeight - 150, 60, 90};
     Vector2 playerSpeed = {0, 0};
     int enemyDiedCount = 0;
     int score;
     bool isGrounded = false;
-    int playerLife = 1;
+    int playerLife = 2;
 
     Bullet bullets[MAX_BULLETS] = {0};
     for (int i = 0; i < MAX_BULLETS; i++) bullets[i].active = false;
@@ -402,7 +425,7 @@ int GameLoop(void) {
         if (playerLife <= 0) {
         StopMusicStream(lvlMusic);
         PlaySound(defeat);
-        ClearBackground(RAYWHITE);
+        ClearBackground(BLACK);
         BeginDrawing();
         
         const char *gameOverText = "GAME OVER";
@@ -415,12 +438,11 @@ int GameLoop(void) {
     }
         
          countdownTime -= GetFrameTime();
-        // countdownTime -= 5;
 
          if (countdownTime <= 0) {
             StopMusicStream(lvlMusic);
             PlaySound(defeat);
-            ClearBackground(RAYWHITE);
+            ClearBackground(BLACK);
             BeginDrawing();
 
             const char *timeoutText = "TEMPO ESGOTADO";
@@ -432,13 +454,15 @@ int GameLoop(void) {
             break;
         }
         
-        if (salaAtual->enemyAlive == false && salaAtual == sala5){
+        if (currentRoom->enemyAlive == false && currentRoom == room5){
             StopMusicStream(lvlMusic);
             PlaySound(victory);
             ClearBackground(RAYWHITE);
             BeginDrawing();
+            Texture2D image1 = LoadTexture("./images/castelo.png");
+            Texture2D image2 = LoadTexture("./images/AAAAAAAAAAAAAAAAAAA.png");
+            Transition(image2, image1, 2.0f);
             DrawText("VITÓRIA!", screenWidth / 2 - 100, screenHeight / 2, 30, GREEN);
-            //TODO: Animação de Vitória
             EndDrawing();
             sleep(3);
             break;
@@ -498,19 +522,19 @@ int GameLoop(void) {
         playerSpeed.y += GRAVITY * GetFrameTime();
         player.y += playerSpeed.y * GetFrameTime();
 
-        if (CheckCollisionRecs(player, salaAtual->floor)) {
-            player.y = salaAtual->floor.y - player.height;
+        if (CheckCollisionRecs(player, currentRoom->floor)) {
+            player.y = currentRoom->floor.y - player.height;
             playerSpeed.y = 0;
             isGrounded = true;
         }
         
-        if(salaAtual->enemyAlive == false){
+        if(currentRoom->enemyAlive == false){
             if (player.x + player.width > screenWidth) {
-                if (salaAtual->direita) {
-                    salaAtual = salaAtual->direita;
-                    if((salaAtual->enemyAlive == true) && (salaAtual != sala5)){
+                if (currentRoom->right) {
+                    currentRoom = currentRoom->right;
+                    if((currentRoom->enemyAlive == true) && (currentRoom != room5)){
                         PlaySound(enemyHowl);
-                    }else if((salaAtual->enemyAlive == true) && (salaAtual == sala5)){
+                    }else if((currentRoom->enemyAlive == true) && (currentRoom == room5)){
                         PlaySound(enemyMage);
                     }
                     player.x = 0;
@@ -519,8 +543,8 @@ int GameLoop(void) {
                     player.x = screenWidth - player.width;
                 }
             } else if (player.x < 0) {
-                if (salaAtual->esquerda) {
-                    salaAtual = salaAtual->esquerda;
+                if (currentRoom->left) {
+                    currentRoom = currentRoom->left;
                     player.x = screenWidth - player.width;
                 } else {
                     player.x = 0;
@@ -528,64 +552,64 @@ int GameLoop(void) {
             }
         }
 
-        if (salaAtual->enemyAlive) {
+        if (currentRoom->enemyAlive) {
             
             if(player.x < 0) player.x = 0;
             if(player.x > screenWidth - player.width) player.x = screenWidth - player.width;
             
-            if(salaAtual->enemy.x < player.x){
+            if(currentRoom->enemy.x < player.x){
                 enemyAnim.flipped = true;
             }else{
                 enemyAnim.flipped = false;
             }
             
-            if (salaAtual->id == 5) {
+            if (currentRoom->id == 5) {
                 if(IsMusicStreamPlaying(music)){
                     StopMusicStream(lvlMusic);
                     lvlMusic = musicBoss;
                     PlayMusicStream(lvlMusic);
                 }
                 if (movingRight) {
-                    salaAtual->enemy.x += BOSS_SPEED * GetFrameTime();
-                    if (salaAtual->enemy.x + salaAtual->enemy.width >= screenWidth) movingRight = false;
+                    currentRoom->enemy.x += BOSS_SPEED * GetFrameTime();
+                    if (currentRoom->enemy.x + currentRoom->enemy.width >= screenWidth) movingRight = false;
                 } else {
-                    salaAtual->enemy.x -= BOSS_SPEED * GetFrameTime();
-                    if (salaAtual->enemy.x <= 0) movingRight = true;
+                    currentRoom->enemy.x -= BOSS_SPEED * GetFrameTime();
+                    if (currentRoom->enemy.x <= 0) movingRight = true;
                 }
 
                 if (rand() % 8 == 0) {
                     for (int i = 0; i < MAX_ENEMY_BULLETS; i++) {
-                        if (!salaAtual->enemyBullets[i].active) {
-                            salaAtual->enemyBullets[i].rect = (Rectangle){salaAtual->enemy.x + salaAtual->enemy.width / 2, salaAtual->enemy.y + salaAtual->enemy.height, 5, 10};
-                            salaAtual->enemyBullets[i].speed = (Vector2){0, BULLET_SPEED};
-                            salaAtual->enemyBullets[i].active = true;
+                        if (!currentRoom->enemyBullets[i].active) {
+                            currentRoom->enemyBullets[i].rect = (Rectangle){currentRoom->enemy.x + currentRoom->enemy.width / 2, currentRoom->enemy.y + currentRoom->enemy.height, 5, 10};
+                            currentRoom->enemyBullets[i].speed = (Vector2){0, BULLET_SPEED};
+                            currentRoom->enemyBullets[i].active = true;
                             break;
                         }
                     }
                 }
             } else {
-                Vector2 direction = {player.x - salaAtual->enemy.x, player.y - salaAtual->enemy.y};
+                Vector2 direction = {player.x - currentRoom->enemy.x, player.y - currentRoom->enemy.y};
                 float magnitude = sqrt(direction.x * direction.x + direction.y * direction.y);
                 if (magnitude > 0) {
                     direction.x /= magnitude;
-                    salaAtual->enemy.x += direction.x * ENEMY_SPEED * GetFrameTime();
+                    currentRoom->enemy.x += direction.x * ENEMY_SPEED * GetFrameTime();
                 }
             }
 
-            if (CheckCollisionRecs(player, salaAtual->enemy)) {
+            if (CheckCollisionRecs(player, currentRoom->enemy)) {
                 playerLife--;
                 player.x -= 50;
             }
         }
 
         for (int i = 0; i < MAX_ENEMY_BULLETS; i++) {
-            if (salaAtual->enemyBullets[i].active) {
-                salaAtual->enemyBullets[i].rect.y += salaAtual->enemyBullets[i].speed.y * GetFrameTime();
-                if (salaAtual->enemyBullets[i].rect.y > screenHeight) salaAtual->enemyBullets[i].active = false;
+            if (currentRoom->enemyBullets[i].active) {
+                currentRoom->enemyBullets[i].rect.y += currentRoom->enemyBullets[i].speed.y * GetFrameTime();
+                if (currentRoom->enemyBullets[i].rect.y > screenHeight) currentRoom->enemyBullets[i].active = false;
 
-                if (CheckCollisionRecs(salaAtual->enemyBullets[i].rect, player)) {
+                if (CheckCollisionRecs(currentRoom->enemyBullets[i].rect, player)) {
                     playerLife--;
-                    salaAtual->enemyBullets[i].active = false;
+                    currentRoom->enemyBullets[i].active = false;
                     if (playerLife <= 0) break;
                 }
             }
@@ -622,11 +646,11 @@ int GameLoop(void) {
                 bullets[i].rect.y += bullets[i].speed.y * GetFrameTime();
                 if (bullets[i].rect.x > screenWidth || bullets[i].rect.x < 0 || bullets[i].rect.y < 0) bullets[i].active = false;
 
-                if (salaAtual->enemyAlive && CheckCollisionRecs(bullets[i].rect, salaAtual->enemy)) {
-                    salaAtual->enemyLife -= 1;
+                if (currentRoom->enemyAlive && CheckCollisionRecs(bullets[i].rect, currentRoom->enemy)) {
+                    currentRoom->enemyLife -= 1;
                     bullets[i].active = false;
-                    if (salaAtual->enemyLife <= 0){
-                      salaAtual->enemyAlive = false;
+                    if (currentRoom->enemyLife <= 0){
+                      currentRoom->enemyAlive = false;
                       enemyDiedCount += 1;
                     }
                 }
@@ -636,14 +660,13 @@ int GameLoop(void) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
         
-        if(salaAtual == sala5){
-            DrawTextureEx(salaAtual->background, (Vector2){-20, 10}, 0.0f, 1.8f, RAYWHITE);
+        if(currentRoom == room5){
+            DrawTextureEx(currentRoom->background, (Vector2){-20, 10}, 0.0f, 1.8f, RAYWHITE);
         }else{
-            DrawTexture(salaAtual->background, 0, -90, RAYWHITE);
+            DrawTexture(currentRoom->background, 0, -90, RAYWHITE);
         }
         
         DrawRectangleLines(0, 450 - 50, 800, 50, DARKGRAY);
-        //DrawRectangleRec(player, BLUE);
         
         Rectangle sourceRec = {
             currentAnim->frameWidth * currentAnim->currentFrame,
@@ -654,28 +677,29 @@ int GameLoop(void) {
         
         float spriteHeight = (float)currentAnim->texture.height;
         float spriteWidth = currentAnim->frameWidth;
-        float desiredHeight = 150.0f; // Adjust this value to make sprite bigger
+        float desiredHeight = 150.0f;
         float scale = desiredHeight / spriteHeight;
         
         Rectangle destRec = {
-            player.x - ((spriteWidth * scale - player.width) / 2), // Center horizontally
-            player.y - (desiredHeight - player.height),            // Adjust vertical position
-            spriteWidth * scale,                                   // Scaled width
-            spriteHeight * scale                                   // Scaled height
+            player.x - ((spriteWidth * scale - player.width) / 2),
+            player.y - (desiredHeight - player.height),            
+            spriteWidth * scale,                                   
+            spriteHeight * scale                                   
         };
         
         // DrawRectangleRec(player, (Color){0, 0, 255, 128}); // Semi-transparent blue hitbox FOR DEBUGGIN/TESTING ONLY
         // DrawRectangleRec(destRec, (Color){255, 0, 0, 128}); // Semi-transparent red sprite bounds FOR DEBUGGIN/TESTING ONLY
         
-        DrawRectangleRec(salaAtual->enemy, (Color){255, 0, 0, 128});
+        DrawRectangleRec(currentRoom->enemy, (Color){255, 0, 0, 128});
         
         Vector2 origin = {0, 0};
         DrawTexturePro(currentAnim->texture, sourceRec, destRec, origin, 0.0f, WHITE);
         
+        if (currentRoom->enemyAlive) DrawRectangleRec(currentRoom->enemy, RED);
         float desiredEnemyHeight = 50.0f;
         float enemyScale = desiredEnemyHeight / (float)enemyAnim.texture.height;
         
-        if (salaAtual->enemyAlive) {
+        if (currentRoom->enemyAlive) {
             Rectangle enemySourceRec = {
                 enemyAnim.frameWidth * enemyAnim.currentFrame,
                 0,
@@ -683,22 +707,22 @@ int GameLoop(void) {
                 (float)enemyAnim.texture.height
             };
             Rectangle enemyDestRec = {
-                salaAtual->enemy.x,
-                salaAtual->enemy.y - (enemyAnim.texture.height - salaAtual->enemy.height), // Adjusted Y position
+                currentRoom->enemy.x,
+                currentRoom->enemy.y - (enemyAnim.texture.height - currentRoom->enemy.height), // Adjusted Y position
                 enemyAnim.frameWidth * enemyScale,            // Scaled width
                 (float)enemyAnim.texture.height * enemyScale // Scaled height
             };
             Rectangle enemyHitbox = {
-                salaAtual->enemy.x,
-                salaAtual->enemy.y,
-                salaAtual->enemy.width * enemyScale,    // Scaled hitbox width
-                salaAtual->enemy.height * enemyScale    // Scaled hitbox height
+                currentRoom->enemy.x,
+                currentRoom->enemy.y,
+                currentRoom->enemy.width * enemyScale,    // Scaled hitbox width
+                currentRoom->enemy.height * enemyScale    // Scaled hitbox height
             };
             DrawTexturePro(enemyAnim.texture, enemySourceRec, enemyDestRec, (Vector2){0, 0}, 0.0f, WHITE);
         }
 
         for (int i = 0; i < MAX_BULLETS; i++) if (bullets[i].active) DrawRectangleRec(bullets[i].rect, BLACK);
-        for (int i = 0; i < MAX_ENEMY_BULLETS; i++) if (salaAtual->enemyBullets[i].active) DrawRectangleRec(salaAtual->enemyBullets[i].rect, WHITE);
+        for (int i = 0; i < MAX_ENEMY_BULLETS; i++) if (currentRoom->enemyBullets[i].active) DrawRectangleRec(currentRoom->enemyBullets[i].rect, WHITE);
         
         int minutes = (int)(countdownTime / 60);
         int seconds = (int)(countdownTime) % 60;
@@ -716,7 +740,7 @@ int GameLoop(void) {
     UnloadTexture(jumpAnim.texture);
     UnloadTexture(enemyAnim.texture);
     
-    liberaSalas(sala1);
+    freeRoom(room1);
     UnloadSound(enemyMage);
     UnloadSound(enemyHowl);
     UnloadSound(playerShoot);
@@ -737,8 +761,6 @@ int main(void) {
 
     SetTargetFPS(60);
     
-    //TODO: Animação de Entrada
-    
     GameScreen currentScreen = MENU;
     while (currentScreen == MENU) {
         currentScreen = Menu();
@@ -749,9 +771,8 @@ int main(void) {
         return 0;
     }
     
-    int score = GameLoop();  // Just call GameLoop once and get the score
+    int score = GameLoop();
     
-    // Only save if we got a valid score (greater than 0)
     saveScore(playerName, score);
 
     CloseWindow();
