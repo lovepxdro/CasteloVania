@@ -42,10 +42,10 @@ typedef struct {
     int currentFrame;     
     float frameTimer;     
     bool flipped;
-    Vector2 position;     // Added to track position
-    Rectangle hitbox;     // Added for collision detection
-    AnimationState state; // Added to track animation state
-    float scale;         // Added for consistent scaling
+    Vector2 position;     
+    Rectangle hitbox;     
+    AnimationState state; 
+    float scale;        
 } EnemyAnimation;
 
 typedef enum {
@@ -293,7 +293,7 @@ EnemyAnimation* initEnemyAnimation(void) {
     enemyAnim->currentFrame = 0;
     enemyAnim->frameTimer = 0.0f;
     enemyAnim->flipped = false;
-    enemyAnim->scale = 2.0f; // Adjust scale as needed
+    enemyAnim->scale = 2.0f;
     
     enemyAnim->hitbox = (Rectangle){
         0, 0,
@@ -318,10 +318,9 @@ Room* createRoom(int id) {
         room->enemy = (Rectangle){0, room->ceiling.y + room->ceiling.height, 50, 50};
         room->enemyLife = 130;
         room->enemyAnim = initEnemyAnimation();
-        // Load boss-specific texture if needed
         UnloadTexture(room->enemyAnim->texture);
-        room->enemyAnim->texture = LoadTexture("./assets/Necromancer_creativekind-Sheet.png"); // Replace with your boss sprite
-        room->enemyAnim->maxFrames = 8; // Adjust based on your boss sprite
+        room->enemyAnim->texture = LoadTexture("./assets/Necromancer_creativekind-Sheet.png");
+        room->enemyAnim->maxFrames = 8;
     } else if (id > 1) {
         room->background = LoadTexture("./images/8d830da54b4e5a98f5734a62fcae4be1ebc505db_2_1035x582.gif");
         room->enemyAlive = true;
@@ -388,14 +387,11 @@ void updateEnemyAnimation(Room* currentRoom, Rectangle player) {
 
     EnemyAnimation* enemyAnim = currentRoom->enemyAnim;
     
-    // Update enemy position
     enemyAnim->position.x = currentRoom->enemy.x;
     enemyAnim->position.y = currentRoom->enemy.y;
     
-    // Update flipped state based on movement direction
     enemyAnim->flipped = (currentRoom->enemy.x > player.x);
     
-    // Update animation frame
     enemyAnim->frameTimer += GetFrameTime();
     if (enemyAnim->frameTimer >= FRAME_SPEED) {
         enemyAnim->frameTimer = 0.0f;
@@ -405,7 +401,6 @@ void updateEnemyAnimation(Room* currentRoom, Rectangle player) {
         }
     }
     
-    // Update hitbox position
     enemyAnim->hitbox.x = enemyAnim->position.x;
     enemyAnim->hitbox.y = enemyAnim->position.y;
 }
@@ -429,7 +424,6 @@ void drawEnemy(Room* currentRoom) {
         enemyAnim->texture.height * enemyAnim->scale
     };
     
-    // Draw the enemy sprite
     DrawTexturePro(
         enemyAnim->texture,
         sourceRec,
@@ -439,8 +433,7 @@ void drawEnemy(Room* currentRoom) {
         WHITE
     );
     
-    // Uncomment for debugging hitbox
-    // DrawRectangleRec(enemyAnim->hitbox, (Color){255, 0, 0, 128});
+    
 }
 
 
@@ -791,17 +784,11 @@ int GameLoop(void) {
             player.y - (desiredHeight - player.height),            
             spriteWidth * scale,                                   
             spriteHeight * scale                                   
-        };
-        
-        // DrawRectangleRec(player, (Color){0, 0, 255, 128}); // Semi-transparent blue hitbox FOR DEBUGGING/TESTING ONLY
-        // DrawRectangleRec(destRec, (Color){255, 0, 0, 128}); // Semi-transparent red sprite bounds FOR DEBUGGING/TESTING ONLY
-        
-        //DrawRectangleRec(currentRoom->enemy, (Color){255, 0, 0, 128}); DEBUGGING
+        };      
         
         Vector2 origin = {0, 0};
         DrawTexturePro(currentAnim->texture, sourceRec, destRec, origin, 0.0f, WHITE);
         
-        //if (currentRoom->enemyAlive) DrawRectangleRec(currentRoom->enemy, RED); DEBUGGING
         float desiredEnemyHeight = 50.0f;
         float enemyScale = desiredEnemyHeight / (float)enemyAnim.texture.height;
         
@@ -814,15 +801,15 @@ int GameLoop(void) {
             };
             Rectangle enemyDestRec = {
                 currentRoom->enemy.x,
-                currentRoom->enemy.y - (enemyAnim.texture.height - currentRoom->enemy.height), // Adjusted Y position
-                enemyAnim.frameWidth * enemyScale,            // Scaled width
-                (float)enemyAnim.texture.height * enemyScale // Scaled height
+                currentRoom->enemy.y - (enemyAnim.texture.height - currentRoom->enemy.height), 
+                enemyAnim.frameWidth * enemyScale,            
+                (float)enemyAnim.texture.height * enemyScale 
             };
             Rectangle enemyHitbox = {
                 currentRoom->enemy.x,
                 currentRoom->enemy.y,
-                currentRoom->enemy.width * enemyScale,    // Scaled hitbox width
-                currentRoom->enemy.height * enemyScale    // Scaled hitbox height
+                currentRoom->enemy.width * enemyScale,    
+                currentRoom->enemy.height * enemyScale   
             };
             DrawTexturePro(enemyAnim.texture, enemySourceRec, enemyDestRec, (Vector2){0, 0}, 0.0f, WHITE);
         }
