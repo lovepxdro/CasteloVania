@@ -159,7 +159,7 @@ GameScreen Menu(void) {
     const char *menuOptions[MAX_OPTIONS] = { "Iniciar", "Instruções", "Ranking", "Sair" };
     
     InitAudioDevice();
-    Music menuMusic = LoadMusicStream("./sounds/MusicMenu.mp3");
+    Music menuMusic = LoadMusicStream("./music/MusicMenu.mp3");
     SetMusicVolume(menuMusic, 0.5f);
     PlayMusicStream(menuMusic);
     
@@ -218,6 +218,7 @@ GameScreen Menu(void) {
             }
         EndDrawing();
     }
+    UnloadMusicStream(menuMusic);
     UnloadTexture(menuBackground);
     return SAIR;
 }
