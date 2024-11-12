@@ -284,6 +284,7 @@ void GetPlayerName(){
 
 int GameLoop(void) {
     InitAudioDevice();
+    Music music = LoadMusicStream("./music/Castlevania (NES)_ Wicked Child (Extended) [ ezmp3.cc ].mp3");
     Sound enemyMage = LoadSound("./sounds/Retro Event 19.wav");
     Sound enemyHowl = LoadSound("./sounds/Retro Wolf B 02.wav");
     Sound playerShoot = LoadSound("./sounds/Retro Gun SingleShot 04.mp3");
@@ -322,9 +323,13 @@ int GameLoop(void) {
     SetTargetFPS(60);
     bool movingRight = true;
     double countdownTime = 120.0;
+    
+    PlayMusicStream(music);
 
     while (!WindowShouldClose()) {
+        UpdateMusicStream(music);
         if (playerLife <= 0) {
+        StopMusicStream(music);
         ClearBackground(RAYWHITE);
         BeginDrawing();
         
@@ -341,6 +346,7 @@ int GameLoop(void) {
         // countdownTime -= 5;
 
          if (countdownTime <= 0) {
+            StopMusicStream(music);
             ClearBackground(RAYWHITE);
             BeginDrawing();
 
@@ -354,6 +360,7 @@ int GameLoop(void) {
         }
         
         if (salaAtual->enemyAlive == false && salaAtual == sala5){
+            StopMusicStream(music);
             ClearBackground(RAYWHITE);
             BeginDrawing();
             DrawText("VITÓRIA!", screenWidth / 2 - 100, screenHeight / 2, 30, GREEN);
@@ -528,6 +535,7 @@ int GameLoop(void) {
     UnloadSound(enemyMage);
     UnloadSound(enemyHowl);
     UnloadSound(playerShoot);
+    UnloadMusicStream(music);
     CloseAudioDevice();
     
     return score;
