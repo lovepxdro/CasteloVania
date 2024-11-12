@@ -314,10 +314,10 @@ void GetPlayerName(){
     
     while(!WindowShouldClose()){
         BeginDrawing();
-        ClearBackground(RAYWHITE);
+        ClearBackground(BLACK);
         
         DrawText("Coloque o seu nome:", screenWidth / 2 - MeasureText("Coloque o seu nome:", 20) / 2, screenHeight / 2 - 50, 20, DARKBLUE);
-        DrawText(playerName, screenWidth / 2 - MeasureText(playerName, 20) / 2, screenHeight / 2, 20, BLACK);
+        DrawText(playerName, screenWidth / 2 - MeasureText(playerName, 20) / 2, screenHeight / 2, 20, WHITE);
         
         EndDrawing();
         
@@ -418,7 +418,7 @@ int GameLoop(void) {
         if (playerLife <= 0) {
         StopMusicStream(lvlMusic);
         PlaySound(defeat);
-        ClearBackground(RAYWHITE);
+        ClearBackground(BLACK);
         BeginDrawing();
         
         const char *gameOverText = "GAME OVER";
@@ -435,7 +435,7 @@ int GameLoop(void) {
          if (countdownTime <= 0) {
             StopMusicStream(lvlMusic);
             PlaySound(defeat);
-            ClearBackground(RAYWHITE);
+            ClearBackground(BLACK);
             BeginDrawing();
 
             const char *timeoutText = "TEMPO ESGOTADO";
