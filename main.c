@@ -150,8 +150,11 @@ int contScore(PlayerScore *ranking) {
     return cont;
 }
 
-
 GameScreen Menu(void) {
+    InitAudioDevice();
+    Music menuMusic = LoadMusicStream("./music/Castlevania (NES) Music - Boss Battle Poison Mind.mp3");
+    SetMusicVolume(menuMusic, 0.5f);
+    PlayMusicStream(menuMusic);
     const int screenWidth = 800;
     const int screenHeight = 420;
     int selectedOption = 0;
@@ -161,8 +164,9 @@ GameScreen Menu(void) {
     Color semiTransparent = (Color){255, 255, 255, 128};
     
     Texture2D menuBackground = LoadTexture("./images/AAAAAAAAAAAAAAAAAAA.png");
-
+    
     while (!WindowShouldClose()) {
+        UpdateMusicStream(menuMusic);
         // Controle de navegação no menu
         if (IsKeyPressed(KEY_DOWN)) selectedOption = (selectedOption + 1) % MAX_OPTIONS;
         if (IsKeyPressed(KEY_UP)) selectedOption = (selectedOption - 1 + MAX_OPTIONS) % MAX_OPTIONS;
@@ -170,8 +174,16 @@ GameScreen Menu(void) {
         // Verifica se a opção foi selecionada com Enter
         if (IsKeyPressed(KEY_ENTER)) {
             if (selectedOption == 0) {
+                StopMusicStream(menuMusic);  // Para a música antes de iniciar o jogo
+                UnloadMusicStream(menuMusic); // Descarrega o stream de música do menu
+                UnloadTexture(menuBackground);
+                CloseAudioDevice();
                 return JOGO;  // Selecionou "Iniciar", encerra o menu e inicia o jogo
             } else if (selectedOption == 3) {
+                StopMusicStream(menuMusic);  // Para a música antes de iniciar o jogo
+                UnloadMusicStream(menuMusic); // Descarrega o stream de música do menu
+                UnloadTexture(menuBackground);
+                CloseAudioDevice();
                 return SAIR;  // Selecionou "Sair", encerra o programa
             }
         }
@@ -212,6 +224,8 @@ GameScreen Menu(void) {
             }
         EndDrawing();
     }
+    UnloadMusicStream(menuMusic);
+    CloseAudioDevice();
     UnloadTexture(menuBackground);
     return SAIR;
 }
