@@ -35,6 +35,19 @@ typedef struct {
     bool flipped;         
 } Animation;
 
+typedef struct {
+    Texture2D texture;    
+    float frameWidth;     
+    int maxFrames;        
+    int currentFrame;     
+    float frameTimer;     
+    bool flipped;
+    Vector2 position;     // Added to track position
+    Rectangle hitbox;     // Added for collision detection
+    AnimationState state; // Added to track animation state
+    float scale;         // Added for consistent scaling
+} EnemyAnimation;
+
 typedef enum {
     MENU = 0,   
     RANKING,
@@ -64,6 +77,7 @@ typedef struct Room {
     bool enemyAlive;
     int enemyLife;
     Bullet enemyBullets[MAX_ENEMY_BULLETS];
+    EnemyAnimation* enemyAnim;
 } Room;
 
 char playerName[51] = "";
@@ -270,6 +284,26 @@ GameScreen Menu(void) {
     return SAIR;
 }
 
+EnemyAnimation* initEnemyAnimation(void) {
+    EnemyAnimation* enemyAnim = (EnemyAnimation*)malloc(sizeof(EnemyAnimation));
+    
+    enemyAnim->texture = LoadTexture("./assets/wolfsheet2.png");
+    enemyAnim->frameWidth = (float)(enemyAnim->texture.width / 5);
+    enemyAnim->maxFrames = 5;
+    enemyAnim->currentFrame = 0;
+    enemyAnim->frameTimer = 0.0f;
+    enemyAnim->flipped = false;
+    enemyAnim->scale = 2.0f; // Adjust scale as needed
+    
+    enemyAnim->hitbox = (Rectangle){
+        0, 0,
+        enemyAnim->frameWidth * enemyAnim->scale,
+        enemyAnim->texture.height * enemyAnim->scale
+    };
+    
+    return enemyAnim;
+}
+
 Room* createRoom(int id) {
     Room* room = (Room*)malloc(sizeof(Room));
     room->id = id;
@@ -283,16 +317,23 @@ Room* createRoom(int id) {
         room->background = LoadTexture("./images/scenesample.gif");
         room->enemy = (Rectangle){0, room->ceiling.y + room->ceiling.height, 50, 50};
         room->enemyLife = 130;
+        room->enemyAnim = initEnemyAnimation();
+        // Load boss-specific texture if needed
+        UnloadTexture(room->enemyAnim->texture);
+        room->enemyAnim->texture = LoadTexture("./assets/Necromancer_creativekind-Sheet.png"); // Replace with your boss sprite
+        room->enemyAnim->maxFrames = 8; // Adjust based on your boss sprite
+    } else if (id > 1) {
+        room->background = LoadTexture("./images/8d830da54b4e5a98f5734a62fcae4be1ebc505db_2_1035x582.gif");
+        room->enemyAlive = true;
+        room->enemy = (Rectangle){600, 450 - 100, 50, 50};
+        room->enemyLife = 30;
+        room->enemyAnim = initEnemyAnimation();
     } else {
         room->background = LoadTexture("./images/8d830da54b4e5a98f5734a62fcae4be1ebc505db_2_1035x582.gif");
-        if(id>1){
-            room->enemyAlive = true;
-            room->enemy = (Rectangle){600, 450 - 100, 50, 50};
-            room->enemyLife = 30;
-        }else if(id == 1){
-            room->enemyAlive = false;
-        }
+        room->enemyAlive = false;
+        room->enemyAnim = NULL;
     }
+
 
     for (int i = 0; i < MAX_ENEMY_BULLETS; i++) {
         room->enemyBullets[i].active = false;
@@ -302,6 +343,10 @@ Room* createRoom(int id) {
 
 void freeRoom(Room* room) {
     while (room) {
+        if (room->enemyAnim) {
+            UnloadTexture(room->enemyAnim->texture);
+            free(room->enemyAnim);
+        }
         Room* next = room->right;
         free(room);
         room = next;
@@ -337,6 +382,67 @@ void GetPlayerName(){
 
 Animation * currentAnim = NULL;
 AnimationState currentState = ANIM_IDLE;
+
+void updateEnemyAnimation(Room* currentRoom, Rectangle player) {
+    if (!currentRoom->enemyAlive || !currentRoom->enemyAnim) return;
+
+    EnemyAnimation* enemyAnim = currentRoom->enemyAnim;
+    
+    // Update enemy position
+    enemyAnim->position.x = currentRoom->enemy.x;
+    enemyAnim->position.y = currentRoom->enemy.y;
+    
+    // Update flipped state based on movement direction
+    enemyAnim->flipped = (currentRoom->enemy.x > player.x);
+    
+    // Update animation frame
+    enemyAnim->frameTimer += GetFrameTime();
+    if (enemyAnim->frameTimer >= FRAME_SPEED) {
+        enemyAnim->frameTimer = 0.0f;
+        enemyAnim->currentFrame++;
+        if (enemyAnim->currentFrame >= enemyAnim->maxFrames) {
+            enemyAnim->currentFrame = 0;
+        }
+    }
+    
+    // Update hitbox position
+    enemyAnim->hitbox.x = enemyAnim->position.x;
+    enemyAnim->hitbox.y = enemyAnim->position.y;
+}
+
+void drawEnemy(Room* currentRoom) {
+    if (!currentRoom->enemyAlive || !currentRoom->enemyAnim) return;
+
+    EnemyAnimation* enemyAnim = currentRoom->enemyAnim;
+    
+    Rectangle sourceRec = {
+        enemyAnim->frameWidth * enemyAnim->currentFrame,
+        0,
+        enemyAnim->flipped ? -enemyAnim->frameWidth : enemyAnim->frameWidth,
+        (float)enemyAnim->texture.height
+    };
+    
+    Rectangle destRec = {
+        enemyAnim->position.x,
+        enemyAnim->position.y,
+        enemyAnim->frameWidth * enemyAnim->scale,
+        enemyAnim->texture.height * enemyAnim->scale
+    };
+    
+    // Draw the enemy sprite
+    DrawTexturePro(
+        enemyAnim->texture,
+        sourceRec,
+        destRec,
+        (Vector2){0, 0},
+        0.0f,
+        WHITE
+    );
+    
+    // Uncomment for debugging hitbox
+    // DrawRectangleRec(enemyAnim->hitbox, (Color){255, 0, 0, 128});
+}
+
 
 int GameLoop(void) {
     InitAudioDevice();
@@ -687,15 +793,15 @@ int GameLoop(void) {
             spriteHeight * scale                                   
         };
         
-        // DrawRectangleRec(player, (Color){0, 0, 255, 128}); // Semi-transparent blue hitbox FOR DEBUGGIN/TESTING ONLY
-        // DrawRectangleRec(destRec, (Color){255, 0, 0, 128}); // Semi-transparent red sprite bounds FOR DEBUGGIN/TESTING ONLY
+        // DrawRectangleRec(player, (Color){0, 0, 255, 128}); // Semi-transparent blue hitbox FOR DEBUGGING/TESTING ONLY
+        // DrawRectangleRec(destRec, (Color){255, 0, 0, 128}); // Semi-transparent red sprite bounds FOR DEBUGGING/TESTING ONLY
         
-        DrawRectangleRec(currentRoom->enemy, (Color){255, 0, 0, 128});
+        //DrawRectangleRec(currentRoom->enemy, (Color){255, 0, 0, 128}); DEBUGGING
         
         Vector2 origin = {0, 0};
         DrawTexturePro(currentAnim->texture, sourceRec, destRec, origin, 0.0f, WHITE);
         
-        if (currentRoom->enemyAlive) DrawRectangleRec(currentRoom->enemy, RED);
+        //if (currentRoom->enemyAlive) DrawRectangleRec(currentRoom->enemy, RED); DEBUGGING
         float desiredEnemyHeight = 50.0f;
         float enemyScale = desiredEnemyHeight / (float)enemyAnim.texture.height;
         
