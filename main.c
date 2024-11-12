@@ -128,6 +128,10 @@ GameScreen Menu(void) {
     int selectedOption = 0;
     int numRanking = contScore(ranking);
     const char *menuOptions[MAX_OPTIONS] = { "Iniciar", "Instruções", "Ranking", "Sair" };
+    
+    Color semiTransparent = (Color){255, 255, 255, 128};
+    
+    Texture2D menuBackground = LoadTexture("./imagens/AAAAAAAAAAAAAAAAAAA.png");
 
     while (!WindowShouldClose()) {
         // Controle de navegação no menu
@@ -146,39 +150,40 @@ GameScreen Menu(void) {
         // Desenho do menu dividido
         BeginDrawing();
             ClearBackground(RAYWHITE);
+            
+            DrawTexture(menuBackground, 0, 0, WHITE);
 
             // Divisão da tela
-            DrawRectangle(0, 0, screenWidth / 2, screenHeight, LIGHTGRAY);
-            DrawRectangle(screenWidth / 2, 0, screenWidth / 2, screenHeight, RAYWHITE);
+            DrawRectangle(0, 0, screenWidth / 2, screenHeight, semiTransparent);
+            DrawRectangle(screenWidth / 2, 0, screenWidth / 2, screenHeight, semiTransparent);
 
             // Exibe o título do menu
             DrawText("Menu Principal", screenWidth / 4 - MeasureText("Menu Principal", 30) / 2, 50, 30, DARKBLUE);
 
             // Exibe as opções do menu na área esquerda
             for (int i = 0; i < MAX_OPTIONS; i++) {
-                Color color = (i == selectedOption) ? RED : DARKGRAY;
+                Color color = (i == selectedOption) ? RED : BLACK;
                 DrawText(menuOptions[i], screenWidth / 4 - MeasureText(menuOptions[i], 20) / 2, 150 + i * 40, 20, color);
             }
 
             // Exibe informações na área direita automaticamente para "Instruções" e "Ranking"
             if (selectedOption == 1) {  // Instruções
                 DrawText("Instruções", screenWidth * 3 / 4 - MeasureText("Instruções", 30) / 2, 50, 30, DARKBLUE);
-                DrawText("Use W-A-D para movimentar o personagem.", screenWidth / 2 + 20, 150, 17, DARKGRAY);
-                DrawText("Use as setas para disparar.", screenWidth / 2 + 20, 190, 17, DARKGRAY);
-                DrawText("Aperte ESC para parar de jogar.", screenWidth / 2 + 20, 230, 17, DARKGRAY);
+                DrawText("Use W-A-D para movimentar o personagem.", screenWidth / 2 + 20, 150, 17, BLACK);
+                DrawText("Use as setas para disparar.", screenWidth / 2 + 20, 190, 17, BLACK);
+                DrawText("Aperte ESC para parar de jogar.", screenWidth / 2 + 20, 230, 17, BLACK);
             } else if (selectedOption == 2) {  // Ranking
-                DrawText("Ranking", screenWidth * 3 / 4 - MeasureText("Ranking", 30) / 2, 50, 30, DARKBLUE);
-                DrawText("Top 10 melhores pontuações!", screenWidth / 2 + 20, 130, 17, DARKGRAY);
+                DrawText("Ranking", screenWidth * 3 / 4 - MeasureText("Ranking", 30) / 2, 50, 30, BLACK);
+                DrawText("Top 10 melhores pontuações!", screenWidth / 2 + 20, 130, 17, BLACK);
                 for(int i = 0; i < numRanking; i++){
                     char text[100];
                     snprintf(text, sizeof(text), "%d. %s - %d", i + 1, ranking[i].name, ranking[i].score);
-                    DrawText(text, screenWidth / 2 + 20, 160 + i * 25, 17, DARKGRAY);
+                    DrawText(text, screenWidth / 2 + 20, 160 + i * 25, 17, BLACK);
                 }
             }
-
         EndDrawing();
     }
-
+    UnloadTexture(menuBackground);
     return SAIR;
 }
 
