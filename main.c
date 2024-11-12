@@ -152,7 +152,7 @@ int contScore(PlayerScore *ranking) {
 
 GameScreen Menu(void) {
     InitAudioDevice();
-    Music menuMusic = LoadMusicStream("./music/MusicMenu.mp3");
+    Music menuMusic = LoadMusicStream("./music/Castlevania (NES) Music - Boss Battle Poison Mind.mp3");
     SetMusicVolume(menuMusic, 0.5f);
     PlayMusicStream(menuMusic);
     const int screenWidth = 800;
