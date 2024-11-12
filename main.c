@@ -150,8 +150,52 @@ int contScore(PlayerScore *ranking) {
     return cont;
 }
 
+void Transition(Texture2D image1, Texture2D image2, float delayTime) {
+    float alpha = 0.0f; // Alpha para a transição
+    bool transitioning = false;
+    float timer = 0.0f;
+
+    while (!WindowShouldClose()) {
+        // Atualiza o timer para o delay da imagem inicial
+        if (!transitioning) {
+            timer += GetFrameTime();
+            if (timer >= delayTime) {
+                transitioning = true;  // Inicia a transição após o tempo de espera
+            }
+        }
+
+        // Atualiza o valor de alpha durante a transição
+        if (transitioning) {
+            alpha += 0.01f; // Velocidade da transição
+            if (alpha >= 1.0f) {
+                alpha = 1.0f;
+                break; // Termina a transição e sai do loop
+            }
+        }
+
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+
+        // Desenha as duas imagens com alpha ajustado
+        DrawTexture(image1, 0, 0, WHITE);
+        DrawTexture(image2, 0, 0, Fade(WHITE, alpha)); // A próxima imagem vai aparecendo
+
+        EndDrawing();
+    }
+}
+
+
 GameScreen Menu(void) {
     InitAudioDevice();
+    
+    Texture2D image1 = LoadTexture("./images/castelo.png");
+    Texture2D image2 = LoadTexture("./images/AAAAAAAAAAAAAAAAAAA.png");
+    Transition(image1, image2, 2.0f);
+
+    // Libera as texturas usadas na transição
+    UnloadTexture(image1);
+    UnloadTexture(image2);
+    
     Music menuMusic = LoadMusicStream("./music/Castlevania (NES) Music - Boss Battle Poison Mind.mp3");
     SetMusicVolume(menuMusic, 0.5f);
     PlayMusicStream(menuMusic);
@@ -214,7 +258,7 @@ GameScreen Menu(void) {
                 DrawText("Use as setas para disparar.", screenWidth / 2 + 20, 190, 17, BLACK);
                 DrawText("Aperte ESC para parar de jogar.", screenWidth / 2 + 20, 230, 17, BLACK);
             } else if (selectedOption == 2) {  // Ranking
-                DrawText("Ranking", screenWidth * 3 / 4 - MeasureText("Ranking", 30) / 2, 50, 30, BLACK);
+                DrawText("Ranking", screenWidth * 3 / 4 - MeasureText("Ranking", 30) / 2, 50, 30, DARKBLUE);
                 DrawText("Top 10 melhores pontuações!", screenWidth / 2 + 20, 130, 17, BLACK);
                 for(int i = 0; i < numRanking; i++){
                     char text[100];
